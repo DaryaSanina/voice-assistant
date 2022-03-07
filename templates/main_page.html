@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Main page</h1>
+    <div style="max-width: 500px; margin: auto">
+        {% for message in messages %}
+            {% if message.sender == "user" %}
+                <span class="rounded user-message">
+                    {{ message.text }}
+                </span>
+                <br><br>
+            {% elif message.sender == "assistant" %}
+                <span class="rounded bg-dark assistant-message">
+                    {{ message.text }}
+                </span>
+                <br><br>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}
