@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField
+from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
 
@@ -14,3 +14,4 @@ class Message:
 
 class MessageInputForm(FlaskForm):
     text = StringField(validators=[DataRequired()], render_kw={"placeholder": "Type your message"})
+    send = SubmitField("Send", validators=[DataRequired()])

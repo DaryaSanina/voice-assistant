@@ -17,17 +17,16 @@
         {% endfor %}
 
         <form action="" method="post" novalidate>
-        <div>
-            {{ form.csrf_token }}
-        </div>
-        {% for field in form if field.name != 'csrf_token' %}
-            <div>
-                {{ field() }}
-                {% for error in field.errors %}
-                    <div class="error">{{ error }}</div>
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.text(class="form-control") }}<br>
+                {% for error in form.text.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
                 {% endfor %}
-            </div>
-        {% endfor %}
+            </p>
+            <p>{{ form.send(type="submit", class="btn btn-primary") }}</p>
     </form>
     </div>
 {% endblock %}
