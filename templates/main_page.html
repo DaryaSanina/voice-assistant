@@ -1,19 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Main page</h1>
-    <div style="max-width: 500px; margin: auto">
+    <div style="max-width: 500px; margin: auto;">
+        <br><br><br>
         {% for message in messages %}
             {% if message.sender == "user" %}
                 <span class="rounded user-message">
                     {{ message.text }}
                 </span>
-                <br><br>
+                <br><br><br>
             {% elif message.sender == "assistant" %}
                 <span class="rounded bg-dark assistant-message">
                     {{ message.text }}
                 </span>
-                <br><br>
+                <br><br><br>
             {% endif %}
         {% endfor %}
+
+        <form action="" method="post" novalidate>
+        <div>
+            {{ form.csrf_token }}
+        </div>
+        {% for field in form if field.name != 'csrf_token' %}
+            <div>
+                {{ field() }}
+                {% for error in field.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </form>
     </div>
 {% endblock %}
