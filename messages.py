@@ -12,6 +12,10 @@ class Message:
         return self.text
 
 
-class MessageInputForm(FlaskForm):
+class TextMessageInputForm(FlaskForm):
     text = StringField(validators=[DataRequired()], render_kw={"placeholder": "Type your message"})
     send = SubmitField("Send", validators=[DataRequired()])
+
+
+class VoiceMessageInputForm(FlaskForm):
+    record = SubmitField("Record", validators=[DataRequired()])
