@@ -1,0 +1,16 @@
+span.user-message {
+    float: right;
+    padding: 10px;
+
+    background-color: #006FC4;
+    color: white;
+    font-size: 20px;
+}
+
+span.assistant-message {
+    padding: 10px;
+
+    background-color: #252323;
+    color: white;
+    font-size: 20px;
+}

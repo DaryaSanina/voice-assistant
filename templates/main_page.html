@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+    <div style="max-width: 500px; margin: auto;">
+        <br><br><br>
+        {% for message in messages %}
+            {% if message.sender == "user" %}
+                <span class="rounded user-message">
+                    {{ message.text }}
+                </span>
+                <br><br><br>
+            {% elif message.sender == "assistant" %}
+                <span class="rounded bg-dark assistant-message">
+                    {{ message.text }}
+                </span>
+                <br><br><br>
+            {% endif %}
+        {% endfor %}
+
+        <form action="" method="post" novalidate>
+            {{ text_message_input_form.hidden_tag() }}
+            <p>
+                {{ text_message_input_form.text(class="form-control") }}<br>
+                {% for error in text_message_input_form.text.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </p>
+            <p>{{ text_message_input_form.send(type="submit", class="btn btn-primary") }}</p>
+        </form>
+        <a href=record><button>Record</button></a>
+    </div>
+{% endblock %}
