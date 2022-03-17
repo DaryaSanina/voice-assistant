@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request
 from messages import Message, TextMessageInputForm
 from assistant import Assistant
 
@@ -20,22 +20,15 @@ def main():
         return redirect('/')
 
     # Record audio
-    if is_recording_audio:
+    if request.method == 'POST':
+        audio_file = request.files['speech_recording']
         # TODO
-        pass
 
     # Render HTML
-    return render_template('main_page.html', messages=sent_messages,
+    return render_template('index.html', messages=sent_messages,
                            text_message_input_form=text_message_input_form)
-
-
-@app.route('/record', methods=['GET', 'POST'])
-def start_recording_audio():
-    global is_recording_audio
-    is_recording_audio = True
-    return redirect('/')  # Redirect to the main page
 
 
 if __name__ == '__main__':
     sent_messages = list()
-    app.run(port=8000, host='127.0.0.1')
+    app.run(port=8000, host='127.0.0.1', debug=True, threaded=True)
