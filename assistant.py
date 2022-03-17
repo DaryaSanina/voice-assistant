@@ -1,3 +1,4 @@
+# Singleton
 class AssistantMeta(type):
     _instances = {}
 
