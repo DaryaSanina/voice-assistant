@@ -28,6 +28,8 @@
             </p>
             <p>{{ text_message_input_form.send(type="submit", class="btn btn-primary") }}</p>
         </form>
-        <a href=record><button>Record</button></a>
+        <button class="btn btn-primary" id="recordButton">Record</button>
+        <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+        <script src="/static/js/record.js"></script>
     </div>
 {% endblock %}
