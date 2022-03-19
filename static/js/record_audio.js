@@ -6,10 +6,10 @@ let AudioContext = window.AudioContext || window.webkitAudioContext;
 let audio_context;
 
 let record_button = document.getElementById("recordButton");
-record_button.addEventListener("click", startRecording);  // Add the event to the record button
+record_button.addEventListener("click", start_recording);  // Add the event to the record button
 
 
-function startRecording() {
+function start_recording() {
     let constraints = { audio: true, video:false };
 
     record_button.disabled = true;  // Disable the record button until getting a success or fail from getUserMedia()
@@ -23,7 +23,7 @@ function startRecording() {
         recorder = new Recorder(input);
         recorder.record();  // Start the recording process
 
-        setTimeout(stopRecording, 5000);  // Wait 5 sec
+        setTimeout(stop_recording, 5000);  // Wait 5 sec
 
     }).catch(function(error) {
         record_button.disabled = true;  // Enable the record button if getUserMedia() fails
@@ -31,7 +31,7 @@ function startRecording() {
 }
 
 
-function stopRecording() {
+function stop_recording() {
     record_button.disabled = false;  // Enable the record button to allow new recordings
     recorder.stop();  // Tell the recorder to stop the recording
     get_user_media_stream.getAudioTracks()[0].stop();  // Stop microphone access
