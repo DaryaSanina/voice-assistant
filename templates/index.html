@@ -36,5 +36,10 @@
                 <source src="static/music/answer.wav" type="audio/wav">
             </audio>
         {% endif %}
+        {% if close_tab %}
+            <script>
+                history.go(-history.length + 1);
+            </script>
+        {% endif %}
     </div>
 {% endblock %}
