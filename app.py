@@ -17,6 +17,11 @@ play_audio_answer = False
 def main():
     global play_audio_answer
 
+    if play_audio_answer:
+        play_audio_answer = False
+    if assistant.close_tab:
+        assistant.close_tab = False
+
     # Text message input form
     text_message_input_form = TextMessageInputForm()
     if request.method == 'POST':
@@ -39,12 +44,11 @@ def main():
             sent_messages.append(Message(assistant.answer(recognized_data), 'assistant'))
 
         play_audio_answer = True
-        return redirect('/')
 
     # Render HTML
     return render_template('index.html', messages=sent_messages,
                            text_message_input_form=text_message_input_form,
-                           play_audio_answer=play_audio_answer)
+                           play_audio_answer=play_audio_answer, close_tab=assistant.close_tab)
 
 
 if __name__ == '__main__':
