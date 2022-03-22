@@ -14,7 +14,7 @@ play_audio_answer = False
 
 
 @app.route('/', methods=['POST', 'GET'])
-def main():
+def index():
     global play_audio_answer
 
     if play_audio_answer:
