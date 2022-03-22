@@ -156,6 +156,10 @@ def get_weather(user_message_text) -> str:
         response = requests.get(url=url, params=params)  # Make a request
         json_response = response.json()["list"][-1]  # Convert the response to Python dict
 
+        description = json_response['weather'][0]['description']
+        temperature = json_response['main']['temp']
+        pressure = json_response['main']['pressure']
+
     elif delta_days < 7:  # Get weather forecast
         url = 'http://api.openweathermap.org/data/2.5/onecall'
         params = {'lat': coords[0], 'lon': coords[1], 'units': 'metric',
@@ -164,12 +168,16 @@ def get_weather(user_message_text) -> str:
         response = requests.get(url=url, params=params)  # Make a request
         json_response = response.json()["daily"][delta_days]  # Convert the response to Python dict
 
+        description = json_response['weather'][0]['description']
+        temperature = json_response['temp']['day']
+        pressure = json_response['pressure']
+
     else:
         return "Sorry, I can predict weather only a week ahead :("
 
     # Return the forecast
     return f'''Weather in {geopolitical_entity},
     {datetime.date.today() + datetime.timedelta(days=delta_days)}:
-    {json_response['weather'][0]['description'].capitalize()}
-    Temperature: {json_response['temp']['day']}°C
-    Pressure: {json_response['pressure']}hPa'''
+    {description.capitalize()}
+    Temperature: {temperature}°C
+    Pressure: {pressure}hPa'''
