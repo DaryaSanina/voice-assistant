@@ -44,6 +44,7 @@ def index():
             sent_messages.append(Message(assistant.answer(recognized_data), 'assistant'))
 
         play_audio_answer = True
+        return redirect('/')
 
     # Render HTML
     return render_template('index.html', messages=sent_messages,
