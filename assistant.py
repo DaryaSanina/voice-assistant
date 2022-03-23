@@ -1,52 +1,45 @@
 import speech
+import weather
+import translate
+import currency_rate
+
 import re
-from flask import request
-import requests
-import spacy
-
-import datetime
-
-from googletrans import Translator
-import nltk
-
-WEATHER_APP_ID = '557ae81d232ad0146c0e60fc98903f31'
-WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-MONTHS = ["january", "february", "march", "april", "may", "june",
-          "july", "august", "september", "october", "november", "december"]
-
-nlp = spacy.load('en_core_web_lg')
-translator = Translator()
-stemmer = nltk.stem.PorterStemmer()
 
 close_tab = False
-wait_for_geolocation = False
 
 
 def answer(user_message_text: str) -> str:
-    answer_text = recognize_user_intention(user_message_text.lower())
+    answer_text = recognize_user_intention(user_message_text)
     speech.save_assistant_speech(answer_text)
     return answer_text
 
 
 def recognize_user_intention(user_message_text: str) -> str:
-    global close_tab, wait_for_geolocation
+    global close_tab
 
-    if re.findall(r"translat", user_message_text) or get_language_names_from_text(user_message_text):
-        return translate_text(user_message_text)
+    # Text translation
+    if re.findall(r"translat", user_message_text) \
+            or translate.get_language_names_from_text(user_message_text.lower()):
+        return translate.translate_text(user_message_text.lower())
 
     # Weather forecast
 
     # Determine the location
-    if wait_for_geolocation:
+    if weather.wait_for_geolocation:
         try:
-            wait_for_geolocation = False
-            return get_weather(user_message_text)
+            weather.wait_for_geolocation = False
+            return weather.get_weather(user_message_text)
         except KeyError:
-            wait_for_geolocation = True
+            weather.wait_for_geolocation = True
             return "Please enter your location again"
 
     if re.findall(r"weather", user_message_text):
-        return get_weather(user_message_text)
+        return weather.get_weather(user_message_text)
+
+    # Currency rate
+    if len(re.findall(r"[A-Z]{3}", user_message_text)) == 2:
+        currencies = re.findall(r"[A-Z]{3}", user_message_text)
+        return currency_rate.get_rate(*currencies)
 
     # Greeting
     if re.findall(r"\s(hello)\s", ' ' + user_message_text + ' '):
@@ -60,186 +53,3 @@ def recognize_user_intention(user_message_text: str) -> str:
         return "Bye!"
 
     return user_message_text
-
-
-def get_user_geolocation() -> tuple:
-    url = f'http://ip-api.com/json/{request.remote_addr}'
-    response = requests.get(url=url)  # Make a request
-    json_response = response.json()  # Convert the response to Python dict
-
-    coords = [json_response["lat"], json_response["lon"]]
-    city = json_response["city"]
-    return coords, city
-
-
-def get_geopolitical_entity_from_text(text) -> str:
-    doc = nlp(text)
-
-    for entity in doc.ents:
-        if entity.label_ == "GPE":  # If this is a geopolitical entity
-            geopolitical_entity = entity.text
-
-            # Capitalize the name of the geopolitical entity
-            return ' '.join(word.capitalize() for word in geopolitical_entity.split())
-
-
-def get_geopolitical_entity_coords(geopolitical_entity):
-    url = 'http://geocode-maps.yandex.ru/1.x/'
-    params = {'apikey': '40d1649f-0493-4b70-98ba-98533de7710b', 'geocode': geopolitical_entity,
-              'format': 'json'}
-    response = requests.get(url, params)
-    json_response = response.json()
-    toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
-    coords = toponym["Point"]["pos"].split()
-    return coords
-
-
-def get_delta_days_from_text(text) -> int:
-    doc = nlp(text)
-
-    for entity in doc.ents:
-        if entity.label_ == "DATE":  # This is a date
-            if entity.text == "tomorrow":
-                return 1
-            if entity.text.lower() in WEEKDAYS:
-                forecast_weekday_int = WEEKDAYS.index(entity.text)
-                cur_weekday_int = datetime.date.today().weekday()
-                return (forecast_weekday_int - cur_weekday_int) % 7
-            else:
-                year_pattern = r"\D*(\d{4})\D*"
-                year = re.findall(year_pattern, entity.text)
-
-                month_pattern = r"[a-zA-Z]*"
-                month = re.findall(month_pattern, entity.text)
-
-                day_pattern = r"\D*(\d{1,2})\D*"
-                day = re.findall(day_pattern, entity.text)
-
-                if not month or not day:
-                    return 0
-
-                month = MONTHS.index([month_.lower() for month_ in month
-                                      if month_.lower() in MONTHS][0]) + 1
-                day = int(day[0])
-
-                if not year:  # If the year is not stated
-                    # If prediction date within current year is current date or later
-                    if datetime.date(datetime.date.today().year, month, day) \
-                            >= datetime.date.today():
-                        year = datetime.date.today().year
-                    else:
-                        year = datetime.date.today().year + 1
-                else:
-                    year = int(year[0])
-
-                forecast_date = datetime.date(year, month, day)
-                cur_date = datetime.date.today()
-                return (forecast_date - cur_date).days
-
-    return 0
-
-
-def get_weather(user_message_text) -> str:
-    global wait_for_geolocation
-    # Determine the location
-    try:
-        geopolitical_entity = get_geopolitical_entity_from_text(user_message_text)
-
-        # If the user hasn't entered their location in the message
-        if geopolitical_entity is None:
-            coords, geopolitical_entity = get_user_geolocation()
-        else:
-            coords = get_geopolitical_entity_coords(geopolitical_entity)
-
-    except KeyError:  # Couldn't get the user's location
-        wait_for_geolocation = True
-        return "Sorry, couldn't get location. Please enter it manually"
-
-    # Determine the day delta
-    delta_days = get_delta_days_from_text(user_message_text)
-
-    if delta_days == 0:  # Get current weather
-        url = 'http://api.openweathermap.org/data/2.5/find'
-        params = {'q': geopolitical_entity, 'units': 'metric', 'lang': 'en', 'APPID': WEATHER_APP_ID}
-
-        response = requests.get(url=url, params=params)  # Make a request
-        json_response = response.json()["list"][-1]  # Convert the response to Python dict
-
-        description = json_response['weather'][0]['description']
-        temperature = json_response['main']['temp']
-        pressure = json_response['main']['pressure']
-
-    elif delta_days < 7:  # Get weather forecast
-        url = 'http://api.openweathermap.org/data/2.5/onecall'
-        params = {'lat': coords[0], 'lon': coords[1], 'units': 'metric',
-                  'lang': 'en', 'APPID': WEATHER_APP_ID}
-
-        response = requests.get(url=url, params=params)  # Make a request
-        json_response = response.json()["daily"][delta_days]  # Convert the response to Python dict
-
-        description = json_response['weather'][0]['description']
-        temperature = json_response['temp']['day']
-        pressure = json_response['pressure']
-
-    else:
-        return "Sorry, I can predict weather only a week ahead :("
-
-    # Return the forecast
-    return f'''Weather in {geopolitical_entity},
-    {datetime.date.today() + datetime.timedelta(days=delta_days)}:
-    {description.capitalize()}
-    Temperature: {temperature}°C
-    Pressure: {pressure}hPa'''
-
-
-def translate_text(user_message_text: str) -> str:
-    languages = get_language_names_from_text(user_message_text)
-    text = get_text_to_translate(user_message_text)
-
-    if len(languages) == 0:  # Translate from automatically detected language to english
-        translation = translator.translate(text)
-    elif len(languages) == 1:
-        detected_language = translator.detect(text)
-        # The user has stated the language of the text
-        if languages[0][:2] == detected_language or languages[0] == 'english':
-            translation = translator.translate(text)
-        else:
-            translation = translator.translate(text, dest=languages[0][:2])
-    else:
-        translation = translator.translate(text, src=languages[0][:2], dest=languages[1][:2])
-
-    return translation.text
-
-
-def get_text_to_translate(text) -> str:
-    languages = get_language_names_from_text(text)
-
-    text = text.split()
-    words_not_to_translate = set()
-
-    tokens = nltk.word_tokenize(' '.join(text))
-    tagged_words = nltk.pos_tag(tokens)
-    for i in range(len(tagged_words) - 1):
-        if ((tagged_words[i][1] == 'IN' or tagged_words[i][1] == 'TO')
-                and tagged_words[i + 1][0] in languages) or tagged_words[i][0] in languages:
-            words_not_to_translate.add(tagged_words[i][0])
-            words_not_to_translate.add(tagged_words[i + 1][0])
-
-    for word in text:
-        if stemmer.stem(word) == "translat":
-            words_not_to_translate.add(word)
-
-    words_to_translate = [word for word in text if word not in words_not_to_translate]
-    return ' '.join(words_to_translate)
-
-
-def get_language_names_from_text(text) -> list:
-    doc = nlp(text)
-
-    languages = list()
-
-    for entity in doc.ents:
-        if entity.label_ == 'NORP' or entity.label_ == 'LANGUAGE':
-            languages.append(entity.text)
-
-    return languages
