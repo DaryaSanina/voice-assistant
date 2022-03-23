@@ -3,7 +3,11 @@ import re
 from flask import request
 import requests
 import spacy
+
 import datetime
+
+from googletrans import Translator
+import nltk
 
 WEATHER_APP_ID = '557ae81d232ad0146c0e60fc98903f31'
 WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -11,13 +15,15 @@ MONTHS = ["january", "february", "march", "april", "may", "june",
           "july", "august", "september", "october", "november", "december"]
 
 nlp = spacy.load('en_core_web_lg')
+translator = Translator()
+stemmer = nltk.stem.PorterStemmer()
 
 close_tab = False
 wait_for_geolocation = False
 
 
 def answer(user_message_text: str) -> str:
-    answer_text = recognize_user_intention(user_message_text)
+    answer_text = recognize_user_intention(user_message_text.lower())
     speech.save_assistant_speech(answer_text)
     return answer_text
 
@@ -25,16 +31,8 @@ def answer(user_message_text: str) -> str:
 def recognize_user_intention(user_message_text: str) -> str:
     global close_tab, wait_for_geolocation
 
-    # Greeting
-    if re.findall(r"hello", user_message_text):
-        return "Hello!"
-    if re.findall(r"hi", user_message_text):
-        return "Hi!"
-
-    # Farewell
-    if re.findall(r"bye", user_message_text):
-        close_tab = True
-        return "Bye!"
+    if re.findall(r"translat", user_message_text) or get_language_names_from_text(user_message_text):
+        return translate_text(user_message_text)
 
     # Weather forecast
 
@@ -49,6 +47,17 @@ def recognize_user_intention(user_message_text: str) -> str:
 
     if re.findall(r"weather", user_message_text):
         return get_weather(user_message_text)
+
+    # Greeting
+    if re.findall(r"\s(hello)\s", ' ' + user_message_text + ' '):
+        return "Hello!"
+    if re.findall(r"\s(hi)\s", ' ' + user_message_text + ' '):
+        return "Hi!"
+
+    # Farewell
+    if re.findall(r"bye", user_message_text):
+        close_tab = True
+        return "Bye!"
 
     return user_message_text
 
@@ -151,7 +160,7 @@ def get_weather(user_message_text) -> str:
 
     if delta_days == 0:  # Get current weather
         url = 'http://api.openweathermap.org/data/2.5/find'
-        params = {'lat': coords[0], 'lon': coords[1], 'units': 'metric', 'lang': 'en', 'APPID': WEATHER_APP_ID}
+        params = {'q': geopolitical_entity, 'units': 'metric', 'lang': 'en', 'APPID': WEATHER_APP_ID}
 
         response = requests.get(url=url, params=params)  # Make a request
         json_response = response.json()["list"][-1]  # Convert the response to Python dict
@@ -181,3 +190,56 @@ def get_weather(user_message_text) -> str:
     {description.capitalize()}
     Temperature: {temperature}°C
     Pressure: {pressure}hPa'''
+
+
+def translate_text(user_message_text: str) -> str:
+    languages = get_language_names_from_text(user_message_text)
+    text = get_text_to_translate(user_message_text)
+
+    if len(languages) == 0:  # Translate from automatically detected language to english
+        translation = translator.translate(text)
+    elif len(languages) == 1:
+        detected_language = translator.detect(text)
+        # The user has stated the language of the text
+        if languages[0][:2] == detected_language or languages[0] == 'english':
+            translation = translator.translate(text)
+        else:
+            translation = translator.translate(text, dest=languages[0][:2])
+    else:
+        translation = translator.translate(text, src=languages[0][:2], dest=languages[1][:2])
+
+    return translation.text
+
+
+def get_text_to_translate(text) -> str:
+    languages = get_language_names_from_text(text)
+
+    text = text.split()
+    words_not_to_translate = set()
+
+    tokens = nltk.word_tokenize(' '.join(text))
+    tagged_words = nltk.pos_tag(tokens)
+    for i in range(len(tagged_words) - 1):
+        if ((tagged_words[i][1] == 'IN' or tagged_words[i][1] == 'TO')
+                and tagged_words[i + 1][0] in languages) or tagged_words[i][0] in languages:
+            words_not_to_translate.add(tagged_words[i][0])
+            words_not_to_translate.add(tagged_words[i + 1][0])
+
+    for word in text:
+        if stemmer.stem(word) == "translat":
+            words_not_to_translate.add(word)
+
+    words_to_translate = [word for word in text if word not in words_not_to_translate]
+    return ' '.join(words_to_translate)
+
+
+def get_language_names_from_text(text) -> list:
+    doc = nlp(text)
+
+    languages = list()
+
+    for entity in doc.ents:
+        if entity.label_ == 'NORP' or entity.label_ == 'LANGUAGE':
+            languages.append(entity.text)
+
+    return languages
