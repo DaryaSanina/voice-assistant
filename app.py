@@ -47,11 +47,11 @@ def index():
         return redirect('/')
 
     # Render HTML
+    print(assistant.link_to_search)
     return render_template('index.html', messages=sent_messages,
                            text_message_input_form=text_message_input_form,
                            play_audio_answer=play_audio_answer, close_tab=assistant.close_tab,
-                           search_in_the_internet=assistant.search_in_the_internet,
-                           text_to_search=assistant.text_to_search)
+                           link_to_search=assistant.link_to_search)
 
 
 if __name__ == '__main__':

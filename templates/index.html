@@ -37,9 +37,9 @@
             </audio>
         {% endif %}
 
-        {% if search_in_the_internet %}
+        {% if link_to_search %}
             <script>
-                window.open("https://yandex.ru/search?text={{ text_to_search }}", '_blank').focus();
+                window.open("{{ link_to_search }}", '_blank').focus();
             </script>
         {% endif %}
 
