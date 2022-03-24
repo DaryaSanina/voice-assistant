@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+    <div style="max-width: 500px; margin: auto;">
+        <br><br><br>
+        {% for message in messages %}
+            {% if message.sender == "user" %}
+                <span class="rounded user-message">
+                    {{ message.text }}
+                </span>
+                <br><br><br>
+            {% elif message.sender == "assistant" %}
+                <span class="rounded bg-dark assistant-message">
+                    {{ message.text }}
+                </span>
+                <br><br><br>
+            {% endif %}
+        {% endfor %}
+
+        <form action="" method="post" novalidate>
+            {{ text_message_input_form.hidden_tag() }}
+            <p>
+                {{ text_message_input_form.text(class="form-control") }}<br>
+                {% for error in text_message_input_form.text.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </p>
+            <p>{{ text_message_input_form.send(type="submit", class="btn btn-primary") }}</p>
+        </form>
+        <button class="btn btn-primary" id="recordButton">Record</button>
+        <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+        <script src="/static/js/record_audio.js"></script>
+        {% if play_audio_answer %}
+            <audio autoplay>
+                <source src="static/music/answer.wav" type="audio/wav">
+            </audio>
+        {% endif %}
+
+        {% if link_to_search %}
+            <script>
+                window.open("{{ link_to_search }}", '_blank').focus();
+            </script>
+        {% endif %}
+
+        {% if close_tab %}
+            <script>
+                history.go(-history.length + 1);
+            </script>
+        {% endif %}
+    </div>
+{% endblock %}
