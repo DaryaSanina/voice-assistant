@@ -36,6 +36,13 @@
                 <source src="static/music/answer.wav" type="audio/wav">
             </audio>
         {% endif %}
+
+        {% if search_in_the_internet %}
+            <script>
+                window.open("https://yandex.ru/search?text={{ text_to_search }}", '_blank').focus();
+            </script>
+        {% endif %}
+
         {% if close_tab %}
             <script>
                 history.go(-history.length + 1);

@@ -6,6 +6,8 @@ import currency_rate
 import re
 
 close_tab = False
+search_in_the_internet = False
+text_to_search = ""
 
 
 def answer(user_message_text: str) -> str:
@@ -15,7 +17,11 @@ def answer(user_message_text: str) -> str:
 
 
 def recognize_user_intention(user_message_text: str) -> str:
-    global close_tab
+    global close_tab, search_in_the_internet, text_to_search
+
+    close_tab = False
+    search_in_the_internet = False
+    text_to_search = ""
 
     # Text translation
     if re.findall(r"translat", user_message_text) \
@@ -52,4 +58,6 @@ def recognize_user_intention(user_message_text: str) -> str:
         close_tab = True
         return "Bye!"
 
+    search_in_the_internet = True
+    text_to_search = user_message_text
     return user_message_text
