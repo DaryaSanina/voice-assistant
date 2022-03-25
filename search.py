@@ -18,15 +18,14 @@ wiki_wiki = wikipediaapi.Wikipedia(
 )
 
 
-def search(text: str):
+def search(query: str):
     params = {
         "engine": "yandex",
-        "text": text,
+        "text": query,
         "api_key": SEARCH_API_KEY
     }
     search_ = GoogleSearch(params)
     results = search_.get_dict()
-    print(results)
     organic_results = results['organic_results']
 
     for result in organic_results:
@@ -37,12 +36,20 @@ def search(text: str):
             return search_wikipedia(topic)
 
     assistant.link_to_search = results['search_metadata']['yandex_url']
-    return text
+    return query
 
 
 def search_wikipedia(topic: str) -> str:
     page = wiki_wiki.page(topic)
     text = page.text
     sentences = text.split('.')
-    print('.'.join(sentences[:5]))
     return '.'.join(sentences[:5])
+
+
+def search_youtube(user_message_text: str):
+    query = ' '.join([word for word in user_message_text.split()
+                      if "video" not in word and "youtube" not in word])
+    if query:
+        assistant.link_to_search = f'https://youtube.com/results?search_query={query}'
+    else:
+        assistant.link_to_search = f'https://youtube.com'

@@ -8,6 +8,7 @@ import re
 
 close_tab = False
 link_to_search = ""
+search_in_the_internet = True
 
 
 def answer(user_message_text: str) -> str:
@@ -60,6 +61,11 @@ def recognize_user_intention(user_message_text: str) -> str:
 
     search_in_the_internet = True
     link_to_search = ""
+
+    if re.findall("video", user_message_text) or re.findall("youtube", user_message_text):
+        search.search_youtube(user_message_text)
+        return user_message_text + '\n' + link_to_search
+
     answer_text = search.search(user_message_text)
 
     return answer_text + '\n' + link_to_search

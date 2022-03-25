@@ -47,7 +47,6 @@ def index():
         return redirect('/')
 
     # Render HTML
-    print(assistant.link_to_search)
     return render_template('index.html', messages=sent_messages,
                            text_message_input_form=text_message_input_form,
                            play_audio_answer=play_audio_answer, close_tab=assistant.close_tab,
