@@ -21,6 +21,7 @@ wiki_wiki = wikipediaapi.Wikipedia(
 def search(query: str):
     params = {
         "engine": "yandex",
+        'yandex_domain': 'yandex.ru',
         "text": query,
         "api_key": SEARCH_API_KEY
     }
@@ -30,7 +31,13 @@ def search(query: str):
 
     for result in organic_results:
         link = result['link']
-        if re.findall('en.wikipedia', link):
+        if re.findall(r'music', link):
+            assistant.link_to_search = link
+            return query
+
+    for result in organic_results:
+        link = result['link']
+        if re.findall(r'en\.wikipedia', link):
             assistant.link_to_search = link
             topic = link.split('/')[-1]
             return search_wikipedia(topic)
