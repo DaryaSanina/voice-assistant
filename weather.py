@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from flask import request
 
+# Get weather API key
 path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(path):
     load_dotenv(path)

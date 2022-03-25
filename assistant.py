@@ -59,9 +59,11 @@ def recognize_user_intention(user_message_text: str) -> str:
         close_tab = True
         return "Bye!"
 
+    # Searching in the internet
     search_in_the_internet = True
     link_to_search = ""
 
+    # Searching in YouTube
     if re.findall("video", user_message_text) or re.findall("youtube", user_message_text):
         search.search_youtube(user_message_text)
         return user_message_text + '\n' + link_to_search
