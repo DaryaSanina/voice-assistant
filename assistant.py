@@ -1,3 +1,4 @@
+import events
 import speech
 import weather
 import translate
@@ -47,6 +48,17 @@ def recognize_user_intention(user_message_text: str) -> str:
     if len(re.findall(r"[A-Z]{3}", user_message_text)) == 2:
         currencies = re.findall(r"[A-Z]{3}", user_message_text)
         return currency_rate.get_rate(*currencies)
+
+    # Saving an event
+    if re.findall(r"plan|event", user_message_text) \
+            or weather.get_geopolitical_entity_from_text(user_message_text) \
+            or weather.get_delta_days_from_text(user_message_text)[0] \
+            or events.get_time_from_text(user_message_text):
+        events.add_event(user_message_text)
+        return f"""Name: {events.events[-1]['name']}
+        Date: {events.events[-1]['date']}
+        Time: {events.events[-1]['time']}
+        Place: {events.events[-1]['place']}"""
 
     # Greeting
     if re.findall(r"\s(hello)\s", ' ' + user_message_text + ' '):

@@ -30,23 +30,20 @@ def get_text_to_translate(text) -> str:
     languages = get_language_names_from_text(text)
 
     text = text.split()
-    words_not_to_translate = set()
 
     # Add language names (with prepositions before them) to words_not_to_translate
     tokens = nltk.word_tokenize(' '.join(text))  # Split the text into words
     tagged_words = nltk.pos_tag(tokens)  # Get a tag to each word in the text
-    for i in range(len(tagged_words) - 1):
-        if ((tagged_words[i][1] == 'IN' or tagged_words[i][1] == 'TO')
-                and tagged_words[i + 1][0] in languages) or tagged_words[i][0] in languages:
-            words_not_to_translate.add(tagged_words[i][0])
-            words_not_to_translate.add(tagged_words[i + 1][0])
+    for i in range(len(tagged_words)):
+        if i < len(tagged_words) - 1 \
+                and ((tagged_words[i][1] == 'IN' or tagged_words[i][1] == 'TO')
+                     and tagged_words[i + 1][0] in languages):
+            tagged_words[i][0] = ""
+            tagged_words[i + 1][0] = ""
+        elif tagged_words[i][0] in languages or stemmer.stem(tagged_words[i][0] == "translat"):
+            tagged_words[i][0] = ""
 
-    # Add words with root "translat" to words_not_to_translate
-    for word in text:
-        if stemmer.stem(word) == "translat":
-            words_not_to_translate.add(word)
-
-    words_to_translate = [word for word in text if word not in words_not_to_translate]
+    words_to_translate = [word[0] for word in tagged_words if word[0]]
     return ' '.join(words_to_translate)  # Return the text without words_not_to_translate
 
 
