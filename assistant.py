@@ -49,6 +49,13 @@ def recognize_user_intention(user_message_text: str) -> str:
         currencies = re.findall(r"[A-Z]{3}", user_message_text)
         return currency_rate.get_rate(*currencies)
 
+    # Getting list of events
+    if re.findall(r"plans|events", user_message_text):
+        answer_text = "Here are the events you have planned:"
+        for event in events.events:
+            answer_text += f"\n\nName: {event['name']}\nDate: {event['date']}\nTime: {event['time']}\n Place: {event['place']}"
+        return answer_text
+
     # Saving an event
     if re.findall(r"plan|event", user_message_text) \
             or weather.get_geopolitical_entity_from_text(user_message_text) \

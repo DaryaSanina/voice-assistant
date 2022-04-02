@@ -37,7 +37,6 @@ def add_event(text):
     place = weather.get_geopolitical_entity_from_text(text)
     delta_days, date_str = weather.get_delta_days_from_text(text)
     time, time_str = get_time_from_text(text)
-    print(place, date_str, time_str)
 
     tokens = nltk.word_tokenize(text)  # Split the text into words
     tagged_words = nltk.pos_tag(tokens)  # Get a tag to each word in the text
@@ -57,7 +56,6 @@ def add_event(text):
         while prev_word_start > 1 and text[prev_word_start - 1] != ' ':
             prev_word_start -= 1
 
-        print(prev_word_start, prev_word_end, text[prev_word_start:prev_word_end])
         if prev_word_start != prev_word_end \
                 and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'DT':
             del tagged_words[text.split().index(text[prev_word_start:prev_word_end])]
@@ -89,9 +87,6 @@ def add_event(text):
         prev_word_start = prev_word_end - 1
         while prev_word_start > 1 and text[prev_word_start - 1] != ' ':
             prev_word_start -= 1
-        print(word_start, word_end, text[word_start:word_end + 1], prev_word_start, prev_word_end, text[prev_word_start:prev_word_end])
-        print(tagged_words[text.split().index(text[prev_word_start:prev_word_end])])
-        print(text.split(), text.split().index(text[prev_word_start:prev_word_end]))
 
         if prev_word_start != prev_word_end \
                 and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'IN':
@@ -121,4 +116,3 @@ def add_event(text):
     events.append({"name": text.strip(),
                    "date": datetime.date.today() + datetime.timedelta(days=delta_days),
                    "time": time, "place": place})
-    print(events)
