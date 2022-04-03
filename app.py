@@ -1,4 +1,7 @@
 from flask import Flask, render_template, redirect, request
+import datetime
+
+import events
 from messages import Message, TextMessageInputForm
 import assistant
 import speech
@@ -21,6 +24,17 @@ def index():
         play_audio_answer = False
     if assistant.close_tab:
         assistant.close_tab = False
+
+    # Delete passed events
+    i = 0
+    while i < len(events.events):
+        if events.events[i]['time'] \
+                and (events.events[i]['date'] == datetime.date.today()
+                     and events.events[i]['time'] > datetime.datetime.now().time()) \
+                or events.events[i]['date'] > datetime.date.today():
+            del events.events[i]
+        else:
+            i += 1
 
     # Text message input form
     text_message_input_form = TextMessageInputForm()

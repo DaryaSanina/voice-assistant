@@ -17,18 +17,18 @@ def get_time_from_text(text) -> (datetime.time, str):
         if entity.label_ == "TIME":
             if ':' in entity.text:
                 if 'PM' in entity.text:
-                    time = datetime.time(hour=entity.text.split(':')[0] + 12,
-                                         minute=entity.text.split(':')[1])
+                    time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]) + 12,
+                                         minute=int(entity.text.split(' ')[0].split(':')[1]))
                     return time, entity.text
                 else:
-                    time = datetime.time(hour=entity.text.split(':')[0],
-                                         minute=entity.text.split(':')[1])
+                    time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]),
+                                         minute=int(entity.text.split(' ')[0].split(':')[1]))
                     return time, entity.text
             elif 'AM' in entity.text:
-                time = datetime.time(hour=entity.text.split(':')[0])
+                time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]))
                 return time, entity.text
             elif 'PM' in entity.text:
-                time = datetime.time(hour=entity.text.split(':')[0] + 12)
+                time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]) + 12)
                 return time, entity.text
     return None, ''
 
@@ -45,56 +45,63 @@ def add_event(text):
     if text.find("plan") != -1:
         word_start = text.find("plan")
         word_end = word_start + 4
-        del tagged_words[text.split().index(text[word_start:word_end])]
         text = text[:word_start] + text[word_end + 1:]
+        tokens = nltk.word_tokenize(text)
+        tagged_words = nltk.pos_tag(tokens)
 
     if text.find("event") != -1:
         word_start = text.find("event")
         word_end = word_start + 5
         prev_word_end = word_start - 1
         prev_word_start = prev_word_end
-        while prev_word_start > 1 and text[prev_word_start - 1] != ' ':
+        while prev_word_start > 0 and text[prev_word_start - 1] != ' ':
             prev_word_start -= 1
 
         if prev_word_start != prev_word_end \
                 and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'DT':
-            del tagged_words[text.split().index(text[prev_word_start:prev_word_end])]
             text = text[:word_start] + text[prev_word_end + 1:]
+            tokens = nltk.word_tokenize(text)
+            tagged_words = nltk.pos_tag(tokens)
         else:
-            del tagged_words[text.split().index(text[word_start:word_end])]
             text = text[:word_start] + text[word_end + 1:]
+            tokens = nltk.word_tokenize(text)
+            tagged_words = nltk.pos_tag(tokens)
 
     if place:
         word_start = text.find(place)
         word_end = word_start + len(place)
         prev_word_end = word_start - 1
         prev_word_start = prev_word_end
-        while prev_word_start > 1 and text[prev_word_start - 1] != ' ':
+        while prev_word_start > 0 and text[prev_word_start - 1] != ' ':
             prev_word_start -= 1
 
         if prev_word_start != prev_word_end \
                 and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'IN':
-            del tagged_words[text.split().index(text[prev_word_start:prev_word_end])]
             text = text[:prev_word_start] + text[word_end + 1:]
+            tokens = nltk.word_tokenize(text)
+            tagged_words = nltk.pos_tag(tokens)
         else:
-            del tagged_words[text.split().index(text[word_start:word_end])]
             text = text[:word_start] + text[word_end + 1:]
+            tokens = nltk.word_tokenize(text)
+            tagged_words = nltk.pos_tag(tokens)
 
     if date_str:
         word_start = text.find(date_str)
         word_end = word_start + len(date_str)
         prev_word_end = word_start - 1
         prev_word_start = prev_word_end - 1
-        while prev_word_start > 1 and text[prev_word_start - 1] != ' ':
+        while prev_word_start > 0 and text[prev_word_start - 1] != ' ':
             prev_word_start -= 1
 
         if prev_word_start != prev_word_end \
                 and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'IN':
-            del tagged_words[text.split().index(text[prev_word_start:prev_word_end])]
             text = text[:prev_word_start] + text[word_end + 1:]
+            tokens = nltk.word_tokenize(text)
+            tagged_words = nltk.pos_tag(tokens)
         else:
-            del tagged_words[text.split().index(text[word_start:word_end])]
             text = text[:word_start] + text[word_end + 1:]
+            tokens = nltk.word_tokenize(text)
+            tagged_words = nltk.pos_tag(tokens)
 
     if time_str:
         if text.find(time_str) != -1:
@@ -102,15 +109,13 @@ def add_event(text):
             word_end = word_start + len(time_str)
             prev_word_end = word_start - 1
             prev_word_start = prev_word_end - 1
-            while prev_word_start > 1 and text[prev_word_start - 1] != ' ':
+            while prev_word_start > 0 and text[prev_word_start - 1] != ' ':
                 prev_word_start -= 1
 
             if prev_word_start != prev_word_end \
                     and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'IN':
-                del tagged_words[text.split().index(text[prev_word_start:prev_word_end])]
                 text = text[:prev_word_start] + text[word_end + 1:]
             else:
-                del tagged_words[text.split().index(text[word_start:word_end])]
                 text = text[:word_start] + text[word_end + 1:]
 
     events.append({"name": text.strip(),
