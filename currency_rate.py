@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 import requests
 
+# Get currency rate API key
 path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(path):
     load_dotenv(path)

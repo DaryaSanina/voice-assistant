@@ -1,3 +1,4 @@
+import events
 import speech
 import weather
 import translate
@@ -48,6 +49,24 @@ def recognize_user_intention(user_message_text: str) -> str:
         currencies = re.findall(r"[A-Z]{3}", user_message_text)
         return currency_rate.get_rate(*currencies)
 
+    # Getting list of events
+    if re.findall(r"plans|events", user_message_text):
+        answer_text = "Here are the events you have planned:"
+        for event in events.events:
+            answer_text += f"\n\nName: {event['name']}\nDate: {event['date']}\nTime: {event['time']}\n Place: {event['place']}"
+        return answer_text
+
+    # Saving an event
+    if re.findall(r"plan|event", user_message_text) \
+            or weather.get_geopolitical_entity_from_text(user_message_text) \
+            or weather.get_delta_days_from_text(user_message_text)[0] \
+            or events.get_time_from_text(user_message_text):
+        events.add_event(user_message_text)
+        return f"""Name: {events.events[-1].name}
+        Date: {events.events[-1].date}
+        Time: {events.events[-1].time}
+        Place: {events.events[-1].place}"""
+
     # Greeting
     if re.findall(r"\s(hello)\s", ' ' + user_message_text + ' '):
         return "Hello!"
@@ -59,9 +78,11 @@ def recognize_user_intention(user_message_text: str) -> str:
         close_tab = True
         return "Bye!"
 
+    # Searching in the internet
     search_in_the_internet = True
     link_to_search = ""
 
+    # Searching in YouTube
     if re.findall("video", user_message_text) or re.findall("youtube", user_message_text):
         search.search_youtube(user_message_text)
         return user_message_text + '\n' + link_to_search

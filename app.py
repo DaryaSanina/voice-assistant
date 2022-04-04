@@ -1,4 +1,7 @@
 from flask import Flask, render_template, redirect, request
+import datetime
+
+import events
 from messages import Message, TextMessageInputForm
 import assistant
 import speech
@@ -21,6 +24,58 @@ def index():
         play_audio_answer = False
     if assistant.close_tab:
         assistant.close_tab = False
+
+    # Delete past events
+    i = 0
+    while i < len(events.events):
+        if events.events[i].time \
+                and (events.events[i].date == datetime.date.today()
+                     and events.events[i].time <= datetime.datetime.now().time()) \
+                or events.events[i].date < datetime.date.today():
+            del events.events[i]
+        else:
+            i += 1
+
+    # Notify the user about upcoming events
+    for event in events.events:
+        time_left = ""
+        if event.time:
+            if not event.notification_10_minutes \
+                and (datetime.datetime(year=event.date.year, month=event.date.month,
+                                       day=event.date.day, hour=event.time.hour,
+                                       minute=event.time.minute) - datetime.datetime.now()) \
+                    < datetime.timedelta(minutes=10):
+                time_left = "10 minutes"
+                event.notification_10_minutes = True
+
+            elif not event.notification_2_hours \
+                and (datetime.datetime(year=event.date.year, month=event.date.month,
+                                       day=event.date.day, hour=event.time.hour,
+                                       minute=event.time.minute) - datetime.datetime.now()) \
+                    < datetime.timedelta(hours=2):
+                time_left = "2 hours"
+                event.notification_2_hours = True
+
+            elif not event.notification_24_hours \
+                    and (datetime.datetime(year=event.date.year, month=event.date.month,
+                                           day=event.date.day, hour=event.time.hour,
+                                           minute=event.time.minute) - datetime.datetime.now()) \
+                    < datetime.timedelta(days=1):
+                time_left = "1 day"
+                event.notification_24_hours = True
+
+        elif not event.notification_24_hours \
+                and (event.date - datetime.date.today()) < datetime.timedelta(days=1):
+            time_left = "1 day"
+            event.notification_24_hours = True
+
+        if time_left:
+            sent_messages.append(Message(
+                f"""You have an event in {time_left}
+                Name: {event.name}
+                Date: {event.date}
+                Time: {event.time}
+                Place: {event.place}""", 'assistant'))
 
     # Text message input form
     text_message_input_form = TextMessageInputForm()

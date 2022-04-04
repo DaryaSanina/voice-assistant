@@ -7,6 +7,7 @@ import wikipediaapi
 
 import assistant
 
+# Get search API key
 path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(path):
     load_dotenv(path)
@@ -27,17 +28,17 @@ def search(query: str):
     }
     search_ = GoogleSearch(params)
     results = search_.get_dict()
-    organic_results = results['organic_results']
+    organic_results = results['organic_results']  # Results of the search
 
     for result in organic_results:
         link = result['link']
-        if re.findall(r'music', link):
+        if re.findall(r'music\.yandex', link):  # If there is a Yandex.Music link in the results
             assistant.link_to_search = link
             return query
 
     for result in organic_results:
         link = result['link']
-        if re.findall(r'en\.wikipedia', link):
+        if re.findall(r'en\.wikipedia', link):  # If there is a Wikipedia link in the results
             assistant.link_to_search = link
             topic = link.split('/')[-1]
             return search_wikipedia(topic)
