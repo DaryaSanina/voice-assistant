@@ -62,10 +62,10 @@ def recognize_user_intention(user_message_text: str) -> str:
             or weather.get_delta_days_from_text(user_message_text)[0] \
             or events.get_time_from_text(user_message_text):
         events.add_event(user_message_text)
-        return f"""Name: {events.events[-1]['name']}
-        Date: {events.events[-1]['date']}
-        Time: {events.events[-1]['time']}
-        Place: {events.events[-1]['place']}"""
+        return f"""Name: {events.events[-1].name}
+        Date: {events.events[-1].date}
+        Time: {events.events[-1].time}
+        Place: {events.events[-1].place}"""
 
     # Greeting
     if re.findall(r"\s(hello)\s", ' ' + user_message_text + ' '):

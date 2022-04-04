@@ -10,25 +10,38 @@ stemmer = nltk.stem.PorterStemmer()
 events = list()
 
 
+class Event:
+    def __init__(self, name, date=datetime.date.today(), time=None, place=None):
+        self.name = name
+        self.date = date
+        self.time = time
+        self.place = place
+
+        self.notification_24_hours = False
+        self.notification_2_hours = False
+        self.notification_10_minutes = False
+
+
 def get_time_from_text(text) -> (datetime.time, str):
     doc = nlp(text)
 
     for entity in doc.ents:
         if entity.label_ == "TIME":
-            if ':' in entity.text:
-                if 'PM' in entity.text:
-                    time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]) + 12,
-                                         minute=int(entity.text.split(' ')[0].split(':')[1]))
+            time = entity.text.split()
+            if len(time) == 3:
+                if time[2] == 'PM':
+                    time = datetime.time(hour=int(entity.text.split(' ')[0]) + 12,
+                                         minute=int(entity.text.split(' ')[1]))
                     return time, entity.text
                 else:
-                    time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]),
-                                         minute=int(entity.text.split(' ')[0].split(':')[1]))
+                    time = datetime.time(hour=int(entity.text.split(' ')[0]),
+                                         minute=int(entity.text.split(' ')[1]))
                     return time, entity.text
-            elif 'AM' in entity.text:
-                time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]))
+            elif time[1] == 'AM':
+                time = datetime.time(hour=int(entity.text.split(' ')[0]))
                 return time, entity.text
-            elif 'PM' in entity.text:
-                time = datetime.time(hour=int(entity.text.split(' ')[0].split(':')[0]) + 12)
+            elif time[1] == 'PM':
+                time = datetime.time(hour=int(entity.text.split(' ')[0]) + 12)
                 return time, entity.text
     return None, ''
 
@@ -118,6 +131,7 @@ def add_event(text):
             else:
                 text = text[:word_start] + text[word_end + 1:]
 
-    events.append({"name": text.strip(),
-                   "date": datetime.date.today() + datetime.timedelta(days=delta_days),
-                   "time": time, "place": place})
+    event = Event(name=text.strip(),
+                  date=datetime.date.today() + datetime.timedelta(days=delta_days),
+                  time=time, place=place)
+    events.append(event)
