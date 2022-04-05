@@ -14,16 +14,18 @@ app.config['SECRET_KEY'] = str(hash('secret_key'))
 
 sent_messages = list()
 play_audio_answer = False
+played_audio_answer = False
 
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    global play_audio_answer
+    global play_audio_answer, played_audio_answer
 
-    if play_audio_answer:
+    if play_audio_answer and not played_audio_answer:
+        played_audio_answer = True
+    elif play_audio_answer and played_audio_answer:
         play_audio_answer = False
-    if assistant.close_tab:
-        assistant.close_tab = False
+        played_audio_answer = False
 
     # Delete past events
     i = 0
@@ -80,6 +82,11 @@ def index():
     # Text message input form
     text_message_input_form = TextMessageInputForm()
     if request.method == 'POST':
+        if play_audio_answer:
+            play_audio_answer = False
+        if assistant.close_tab:
+            assistant.close_tab = False
+
         if text_message_input_form.validate_on_submit():  # If the user has sent a text message
             # The user's message
             sent_messages.append(Message(text_message_input_form.text.data, 'user'))
