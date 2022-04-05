@@ -14,3 +14,12 @@ span.assistant-message {
     color: white;
     font-size: 20px;
 }
+
+#title_ {
+    display:inline-block;
+    float: left;
+}
+#register_btn {
+    display:inline-block;
+    float: right;
+}

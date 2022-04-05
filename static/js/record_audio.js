@@ -5,7 +5,7 @@ let input;  // MediaStreamAudioSourceNode
 let AudioContext = window.AudioContext || window.webkitAudioContext;
 let audio_context;
 
-let record_button = document.getElementById("recordButton");
+let record_button = document.getElementById("record_button");
 record_button.addEventListener("click", start_recording);  // Add the event to the record button
 
 
