@@ -1,11 +1,13 @@
 import requests
-import spacy
 import datetime
 import re
 import os
 from dotenv import load_dotenv
 from flask import request
 
+from nlp import nlp
+
+# Get weather API key
 path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(path):
     load_dotenv(path)
@@ -15,8 +17,6 @@ WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", 
 MONTHS = ["january", "february", "march", "april", "may", "june",
           "july", "august", "september", "october", "november", "december"]
 wait_for_geolocation = False
-
-nlp = spacy.load('en_core_web_lg')
 
 
 def get_user_geolocation() -> tuple:
@@ -51,13 +51,13 @@ def get_geopolitical_entity_coords(geopolitical_entity):
     return coords
 
 
-def get_delta_days_from_text(text) -> int:
+def get_delta_days_from_text(text) -> (int, str):
     doc = nlp(text)
 
     for entity in doc.ents:
         if entity.label_ == "DATE":  # This is a date
             if entity.text == "tomorrow":
-                return 1
+                return 1, entity.text
             if entity.text.lower() in WEEKDAYS:
                 forecast_weekday_int = WEEKDAYS.index(entity.text)
                 cur_weekday_int = datetime.date.today().weekday()
@@ -73,8 +73,7 @@ def get_delta_days_from_text(text) -> int:
                 day = re.findall(day_pattern, entity.text)
 
                 if not month or not day:
-                    return 0
-
+                    return 0, ''
                 month = MONTHS.index([month_.lower() for month_ in month
                                       if month_.lower() in MONTHS][0]) + 1
                 day = int(day[0])
@@ -91,9 +90,9 @@ def get_delta_days_from_text(text) -> int:
 
                 forecast_date = datetime.date(year, month, day)
                 cur_date = datetime.date.today()
-                return (forecast_date - cur_date).days
+                return (forecast_date - cur_date).days, entity.text
 
-    return 0
+    return 0, ''
 
 
 def get_weather(user_message_text) -> str:

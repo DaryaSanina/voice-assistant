@@ -32,10 +32,11 @@
         <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
         <script src="/static/js/record_audio.js"></script>
         {% if play_audio_answer %}
-            <audio autoplay>
-                <source src="static/music/answer.wav" type="audio/wav">
+            <audio id="audio" autoplay>
+                <source id="audio_source" src="static/music/answer.wav" type="audio/wav">
             </audio>
         {% endif %}
+
 
         {% if link_to_search %}
             <script>
