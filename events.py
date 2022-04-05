@@ -1,10 +1,9 @@
 import weather
+from nlp import nlp
 
-import spacy
 import datetime
 import nltk
 
-nlp = spacy.load('en_core_web_lg')
 stemmer = nltk.stem.PorterStemmer()
 
 events = list()

@@ -1,6 +1,5 @@
 from flask import Flask, render_template, redirect, request
 import datetime
-import os
 
 import events
 from messages import Message, TextMessageInputForm

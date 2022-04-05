@@ -1,8 +1,8 @@
 from googletrans import Translator
 import nltk
-import spacy
+from nlp import nlp
 
-nlp = spacy.load('en_core_web_lg')
+
 translator = Translator()
 stemmer = nltk.stem.PorterStemmer()
 

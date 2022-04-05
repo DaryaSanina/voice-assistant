@@ -1,10 +1,11 @@
 import requests
-import spacy
 import datetime
 import re
 import os
 from dotenv import load_dotenv
 from flask import request
+
+from nlp import nlp
 
 # Get weather API key
 path = os.path.join(os.path.dirname(__file__), '.env')
@@ -16,8 +17,6 @@ WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", 
 MONTHS = ["january", "february", "march", "april", "may", "june",
           "july", "august", "september", "october", "november", "december"]
 wait_for_geolocation = False
-
-nlp = spacy.load('en_core_web_lg')
 
 
 def get_user_geolocation() -> tuple:
