@@ -115,6 +115,11 @@ def index():
                            link_to_search=assistant.link_to_search)
 
 
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    return "Register"
+
+
 if __name__ == '__main__':
     speech.setup_assistant_voice()
     app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST, debug=True)
