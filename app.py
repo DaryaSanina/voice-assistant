@@ -2,7 +2,8 @@ from flask import Flask, render_template, redirect, request
 import datetime
 
 import events
-from messages import Message, TextMessageInputForm
+from messages import Message
+from forms import TextMessageInputForm, RegisterForm
 import assistant
 import speech
 
@@ -109,7 +110,7 @@ def index():
         return redirect('/')
 
     # Render HTML
-    return render_template('index.html', messages=sent_messages,
+    return render_template('index.html', title="Voice assistant", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
                            play_audio_answer=play_audio_answer, close_tab=assistant.close_tab,
                            link_to_search=assistant.link_to_search)
@@ -117,7 +118,8 @@ def index():
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
-    return "Register"
+    form = RegisterForm()
+    return render_template('register.html', title="Register", form=form)
 
 
 if __name__ == '__main__':
