@@ -60,7 +60,7 @@ def recognize_user_intention(user_message_text: str) -> str:
     if re.findall(r"plan|event", user_message_text) \
             or weather.get_geopolitical_entity_from_text(user_message_text) \
             or weather.get_delta_days_from_text(user_message_text)[0] \
-            or events.get_time_from_text(user_message_text):
+            or events.get_time_from_text(user_message_text)[0]:
         events.add_event(user_message_text)
         return f"""Name: {events.events[-1].name}
         Date: {events.events[-1].date}
