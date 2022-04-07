@@ -1,5 +1,8 @@
-from flask import Flask, render_template, redirect, request
+import re
 import datetime
+
+from flask import Flask, render_template, redirect, request
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
 import events
 from messages import Message
@@ -17,10 +20,18 @@ SERVER_ADDRESS_PORT = 8000
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = str(hash('secret_key'))
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 sent_messages = list()
 play_audio_answer = False
 played_audio_answer = False
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    db_sess = db_session.create_session()
+    return db_sess.query(User).get(user_id)
 
 
 @app.route('/', methods=['POST', 'GET'])
@@ -118,7 +129,7 @@ def index():
     return render_template('index.html', title="Voice assistant", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
                            play_audio_answer=play_audio_answer, close_tab=assistant.close_tab,
-                           link_to_search=assistant.link_to_search)
+                           link_to_search=assistant.link_to_search, current_user=current_user)
 
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -126,35 +137,34 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         if not match_registration_passwords(form):
-            return render_template('register.html', title='Registration',
-                                   form=form,
-                                   message="Passwords don't match")
+            return render_template('register.html', title='Registration', form=form,
+                                   message="Passwords don't match", current_user=current_user)
 
         if not check_registration_password_length(form):
-            return render_template('register.html', title='Registration',
-                                   form=form,
-                                   message="Password should be from 8 to 16 characters long")
+            return render_template('register.html', title='Registration', form=form,
+                                   message="Password should be from 8 to 16 characters long",
+                                   current_user=current_user)
 
         if not check_registration_password_case(form):
-            return render_template('register.html', title='Registration',
-                                   form=form,
-                                   message="Password should contain letters in lower and upper cases")
+            return render_template('register.html', title='Registration', form=form,
+                                   message="Password should contain letters in lower and upper cases",
+                                   current_user=current_user)
 
         if not check_registration_password_letters_and_digits(form):
-            return render_template('register.html', title='Registration',
-                                   form=form,
-                                   message="Password should contain latin letters, numbers and other symbols")
+            return render_template('register.html', title='Registration', form=form,
+                                   message="Password should contain latin letters, numbers and other symbols",
+                                   current_user=current_user)
 
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.username == form.username.data).first():
-            return render_template('register.html', title='Registration',
-                                   form=form,
-                                   message="There is already a user with the same username")
+            return render_template('register.html', title='Registration', form=form,
+                                   message="There is already a user with the same username",
+                                   current_user=current_user)
 
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register.html', title='Registration',
-                                   form=form,
-                                   message="There is already a user with the same email")
+            return render_template('register.html', title='Registration', form=form,
+                                   message="There is already a user with the same email",
+                                   current_user=current_user)
 
         user = User(
             username=form.username.data,
@@ -164,15 +174,34 @@ def register():
         db_sess.add(user)
         db_sess.commit()
         return redirect('/')
-    return render_template('register.html', title="Registration", form=form)
+    return render_template('register.html', title="Registration", form=form,
+                           current_user=current_user)
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        return redirect('/')
-    return render_template('login.html', title="Authorization", form=form)
+        db_sess = db_session.create_session()
+        if re.fullmatch(r'[A-Za-z0-9]+@[A-Za-z0-9]+\.[a-z]+', form.username_or_email.data):
+            # The user has inputted an email
+            user = db_sess.query(User).filter(User.email == form.username_or_email.data).first()
+        else:
+            # The user has inputted a username
+            user = db_sess.query(User).filter(User.username == form.username_or_email.data).first()
+
+        if user and user.check_password(form.password.data):
+            # The user has inputted correct password
+            login_user(user, remember=form.remember_me.data)
+            return redirect('/')
+    return render_template('login.html', title="Authorization", form=form, current_user=current_user)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
 
 
 if __name__ == '__main__':
