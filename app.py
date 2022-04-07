@@ -3,9 +3,13 @@ import datetime
 
 import events
 from messages import Message
-from forms import TextMessageInputForm, RegisterForm
+from forms import TextMessageInputForm, RegisterForm, match_passwords,\
+    check_password_length, check_password_case, check_password_letters_and_digits
 import assistant
 import speech
+
+from data import db_session
+from data.users import User
 
 SERVER_ADDRESS_HOST = '127.0.0.1'
 SERVER_ADDRESS_PORT = 8000
@@ -119,9 +123,50 @@ def index():
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     form = RegisterForm()
-    return render_template('register.html', title="Register", form=form)
+    if form.validate_on_submit():
+        if not match_passwords(form):
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="Passwords don't match")
+
+        if not check_password_length(form):
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="Password should be from 8 to 16 characters long")
+
+        if not check_password_case(form):
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="Password should contain letters in lower and upper cases")
+
+        if not check_password_letters_and_digits(form):
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="Password should contain latin letters, numbers and other symbols")
+
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.username == form.username.data).first():
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="There is already a user with the same username")
+
+        if db_sess.query(User).filter(User.email == form.email.data).first():
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="There is already a user with the same email")
+
+        user = User(
+            username=form.username.data,
+            email=form.email.data
+        )
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('register.html', title="Registration", form=form)
 
 
 if __name__ == '__main__':
     speech.setup_assistant_voice()
+    db_session.global_init("db/users.db")
     app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST, debug=True)
