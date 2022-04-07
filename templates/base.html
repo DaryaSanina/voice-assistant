@@ -14,7 +14,10 @@
 <header>
     <nav class="navbar navbar-light bg-light" style="position: fixed; width: 100%">
         <a class="navbar-brand" href="../" id="title_">Voice assistant</a>
-        <button class="btn btn-primary" id="register_btn" onclick="redirect('/register')">Register</button>
+        <div id="login_and_register_buttons">
+            <button class="btn btn-primary" id="register_btn" onclick="redirect('/register')">Register</button>
+            <button class="btn btn-primary" id="login_btn" onclick="redirect('/login')">Log in</button>
+        </div>
 
         <script>
             function redirect(path){

@@ -19,7 +19,16 @@ span.assistant-message {
     display:inline-block;
     float: left;
 }
+#login_and_register_buttons {
+    display:inline-block;
+    float: right;
+}
 #register_btn {
     display:inline-block;
     float: right;
+}
+#login_btn {
+    display:inline-block;
+    float: left;
+    margin-right: 5px;
 }
