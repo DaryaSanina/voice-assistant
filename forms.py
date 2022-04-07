@@ -11,28 +11,36 @@ class TextMessageInputForm(FlaskForm):
 
 
 class RegisterForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    email = EmailField('Email', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    password_again = PasswordField('Repeat password', validators=[DataRequired()])
+    username = StringField(validators=[DataRequired()], render_kw={"placeholder": "Username"})
+    email = EmailField(validators=[DataRequired()], render_kw={"placeholder": "Email"})
+    password = PasswordField(validators=[DataRequired()], render_kw={"placeholder": "Password"})
+    password_again = PasswordField(validators=[DataRequired()],
+                                   render_kw={"placeholder": "Repeat password"})
     image = FileField('Image')
     submit = SubmitField('Register')
 
 
-def check_password_length(form: RegisterForm):
+class LoginForm(FlaskForm):
+    username_or_email = StringField(validators=[DataRequired()],
+                                    render_kw={"placeholder": "Username or email"})
+    password = PasswordField(validators=[DataRequired()], render_kw={"placeholder": "Password"})
+    submit = SubmitField('Log in')
+
+
+def check_registration_password_length(form: RegisterForm):
     return 8 <= len(form.password.data) <= 16
 
 
-def check_password_letters_and_digits(form: RegisterForm):
+def check_registration_password_letters_and_digits(form: RegisterForm):
     return re.fullmatch(r'[!-~]+', form.password.data) and re.findall(r'[A-Z]', form.password.data) \
            and re.findall(r'[a-z]', form.password.data) and re.findall(r'[0-9]', form.password.data) \
            and re.findall(r'[!-/:-@\[-`{-~]', form.password.data)
 
 
-def check_password_case(form: RegisterForm):
+def check_registration_password_case(form: RegisterForm):
     return form.password.data != form.password.data.lower() \
            and form.password.data != form.password.data.upper()
 
 
-def match_passwords(form: RegisterForm):
+def match_registration_passwords(form: RegisterForm):
     return form.password.data == form.password_again.data

@@ -3,8 +3,9 @@ import datetime
 
 import events
 from messages import Message
-from forms import TextMessageInputForm, RegisterForm, match_passwords,\
-    check_password_length, check_password_case, check_password_letters_and_digits
+from forms import TextMessageInputForm, RegisterForm, LoginForm, match_registration_passwords,\
+    check_registration_password_length, check_registration_password_case,\
+    check_registration_password_letters_and_digits
 import assistant
 import speech
 
@@ -124,22 +125,22 @@ def index():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        if not match_passwords(form):
+        if not match_registration_passwords(form):
             return render_template('register.html', title='Registration',
                                    form=form,
                                    message="Passwords don't match")
 
-        if not check_password_length(form):
+        if not check_registration_password_length(form):
             return render_template('register.html', title='Registration',
                                    form=form,
                                    message="Password should be from 8 to 16 characters long")
 
-        if not check_password_case(form):
+        if not check_registration_password_case(form):
             return render_template('register.html', title='Registration',
                                    form=form,
                                    message="Password should contain letters in lower and upper cases")
 
-        if not check_password_letters_and_digits(form):
+        if not check_registration_password_letters_and_digits(form):
             return render_template('register.html', title='Registration',
                                    form=form,
                                    message="Password should contain latin letters, numbers and other symbols")
@@ -164,6 +165,14 @@ def register():
         db_sess.commit()
         return redirect('/')
     return render_template('register.html', title="Registration", form=form)
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        return redirect('/')
+    return render_template('login.html', title="Authorization", form=form)
 
 
 if __name__ == '__main__':
