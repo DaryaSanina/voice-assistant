@@ -13,6 +13,7 @@ from forms import TextMessageInputForm, RegisterForm, LoginForm, ForgotPasswordF
 import assistant
 import speech
 import send_email
+import image
 from global_variables import SERVER_ADDRESS_HOST, SERVER_ADDRESS_PORT
 
 from data import db_session
@@ -204,6 +205,17 @@ def register():
             email=register_form.email.data
         )
         user.set_password(register_form.password.data)
+
+        if register_form.image.data:
+            print(register_form.image.data)
+            file = register_form.image.data
+            file.save(f'static\\images\\user_images\\{register_form.username.data}.png')
+            image.resize_image(f'static\\images\\user_images\\{register_form.username.data}.png')
+            user.path_to_image \
+                = f'static\\images\\user_images\\{register_form.username.data}.png'
+        else:
+            user.path_to_image = 'static\\images\\default_user_image.png'
+
         db_sess.add(user)
         db_sess.commit()
 

@@ -32,7 +32,7 @@ span.assistant-message {
     float: left;
     margin-right: 5px;
 }
-#logout_btn {
+#username_and_picture {
     display:inline-block;
     float: right;
 }

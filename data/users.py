@@ -15,7 +15,7 @@ class User(SqlAlchemyBase, UserMixin):
                               index=True, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
     previous_hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    path_to_image = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    path_to_image = sqlalchemy.Column(sqlalchemy.String)
 
     def __init__(self, username, email):
         super(User, self).__init__()
