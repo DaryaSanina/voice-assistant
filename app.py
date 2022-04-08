@@ -17,6 +17,7 @@ from global_variables import SERVER_ADDRESS_HOST, SERVER_ADDRESS_PORT
 
 from data import db_session
 from data.users import User
+from data.sent_messages import SentMessage
 
 UNICODE_UPPERCASE_LETTER_CODES = list(range(65, 91))
 UNICODE_LOWERCASE_LETTER_CODES = list(range(97, 123))
@@ -43,7 +44,17 @@ def load_user(user_id):
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    global play_audio_answer, played_audio_answer
+    global play_audio_answer, played_audio_answer, sent_messages
+
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
+        user_id = current_user.id
+
+        database_messages = db_sess.query(SentMessage)\
+            .filter(SentMessage.user_id == user_id).all()
+        sent_messages = list()
+        for message in database_messages:
+            sent_messages.append(Message(text=message.text, sender=message.sender))
 
     if play_audio_answer and not played_audio_answer:
         played_audio_answer = True
@@ -118,6 +129,21 @@ def index():
             # The assistant's answer
             sent_messages.append(
                 Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
+
+            # Update the database
+            if current_user.is_authenticated:
+                db_sess = db_session.create_session()
+                user_id = current_user.id
+
+                message = SentMessage(user_id=user_id, text=sent_messages[-2].text,
+                                      sender=sent_messages[-2].sender)
+                db_sess.add(message)
+
+                message = SentMessage(user_id=user_id, text=sent_messages[-1].text,
+                                      sender=sent_messages[-1].sender)
+                db_sess.add(message)
+
+                db_sess.commit()
 
         elif request.files.get('speech_recording') is not None:  # If speech is recorded
             speech_recording_file = request.files['speech_recording']  # Request the recorded speech
@@ -217,6 +243,9 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    global sent_messages
+
+    sent_messages = list()
     logout_user()
     return redirect('/')
 
@@ -227,17 +256,21 @@ def forgot_password():
 
     forgot_password_form = ForgotPasswordForm()
     if forgot_password_form.validate_on_submit():
-        user_email_address = forgot_password_form.email.data
-        new_password = generate_password()  # Generate a new password
-        # Send an email with the new password
-        send_email.send_forgot_password_email(address=forgot_password_form.email.data,
-                                              password=new_password)
-
-        # Change the password of the user with specified email
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == forgot_password_form.email.data).first()
-        user.set_password(new_password)
-        db_sess.commit()
+
+        if user:
+            user_email_address = forgot_password_form.email.data
+            new_password = generate_password()  # Generate a new password
+            # Send an email with the new password
+            send_email.send_forgot_password_email(address=forgot_password_form.email.data,
+                                                  password=new_password)
+
+            # Change the password of the user with specified email
+            user.set_password(new_password)
+            db_sess.commit()
+        else:
+            redirect('/register')
 
         return "We've sent you a new password on your email"
     elif forgot_password_form.is_submitted():
