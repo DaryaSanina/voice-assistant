@@ -8,12 +8,32 @@
           href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
           crossorigin="anonymous">
-    <title>Voice assistant</title>
+    <title>{{ title }}</title>
 </head>
 <body>
 <header>
     <nav class="navbar navbar-light bg-light" style="position: fixed; width: 100%">
-        <a class="navbar-brand" href="#">Voice assistant</a>
+        <a class="navbar-brand" href="../" id="title_">Voice assistant</a>
+        {% if current_user.is_authenticated %}
+            <div class="dropdown" id="username-and-picture">
+                <p class="navbar-brand">{{ current_user.username }}</p>
+                <img id="user-image" src="{{ current_user.path_to_image }}" alt="user image">
+                <div class="dropdown-content">
+                    <a href="/logout">Log out</a>
+                </div>
+            </div>
+        {% else %}
+            <div id="login-and-register-buttons">
+                <button class="btn btn-primary" id="register-btn" onclick="redirect('/register')">Register</button>
+                <button class="btn btn-primary" id="login-btn" onclick="redirect('/login')">Log in</button>
+            </div>
+        {% endif %}
+
+        <script>
+            function redirect(path){
+                window.location.href = path;
+            }
+        </script>
     </nav>
 </header>
 <!-- Begin page content -->
