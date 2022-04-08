@@ -6,6 +6,7 @@ import currency_rate
 import search
 
 import re
+import random
 from googletrans import Translator
 
 close_tab = False
@@ -59,14 +60,14 @@ def recognize_user_intention(user_message_text: str) -> str:
         currencies = re.findall(r"[A-Z]{3}", user_message_text)
         return currency_rate.get_rate(*currencies)
 
-    # Getting list of events
+    # Get list of events
     if re.findall(r"plans|events", user_message_text):
         answer_text = "Here are the events you have planned:"
         for event in events.events:
             answer_text += f"\n\nName: {event['name']}\nDate: {event['date']}\nTime: {event['time']}\n Place: {event['place']}"
         return answer_text
 
-    # Saving an event
+    # Save an event
     if re.findall(r"plan|event", user_message_text) \
             or weather.get_geopolitical_entity_from_text(user_message_text) \
             or weather.get_delta_days_from_text(user_message_text)[0] \
@@ -76,6 +77,14 @@ def recognize_user_intention(user_message_text: str) -> str:
         Date: {events.events[-1].date}
         Time: {events.events[-1].time}
         Place: {events.events[-1].place}"""
+
+    # Toss a coin
+    if re.findall("toss", user_message_text) and re.findall("coin", user_message_text):
+        return random.choice(["Heads", "Tails"])
+
+    # Roll a dice
+    if re.findall("roll", user_message_text) and re.findall("dice", user_message_text):
+        return str(random.randint(1, 6))
 
     # Greeting
     if re.findall(r"\s(hello)\s", ' ' + user_message_text + ' '):
