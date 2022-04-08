@@ -19,20 +19,41 @@ span.assistant-message {
     display:inline-block;
     float: left;
 }
+
 #login_and_register_buttons {
     display:inline-block;
     float: right;
 }
+
 #register_btn {
     display:inline-block;
     float: right;
 }
-#login_btn {
+
+#login-btn {
     display:inline-block;
     float: left;
     margin-right: 5px;
 }
+
 #username_and_picture {
     display:inline-block;
     float: right;
+}
+
+.dropdown {
+    position: absolute;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
 }

@@ -15,14 +15,17 @@
     <nav class="navbar navbar-light bg-light" style="position: fixed; width: 100%">
         <a class="navbar-brand" href="../" id="title_">Voice assistant</a>
         {% if current_user.is_authenticated %}
-            <div id="username_and_picture">
+            <div class="dropdown" id="username-and-picture">
                 <p class="navbar-brand">{{ current_user.username }}</p>
-                <a id="logout_btn" href="/logout"><img src="{{ current_user.path_to_image }}" alt="user image"></a>
+                <img id="user-image" src="{{ current_user.path_to_image }}" alt="user image">
+                <div class="dropdown-content">
+                    <a href="/logout">Log out</a>
+                </div>
             </div>
         {% else %}
-            <div id="login_and_register_buttons">
-                <button class="btn btn-primary" id="register_btn" onclick="redirect('/register')">Register</button>
-                <button class="btn btn-primary" id="login_btn" onclick="redirect('/login')">Log in</button>
+            <div id="login-and-register-buttons">
+                <button class="btn btn-primary" id="register-btn" onclick="redirect('/register')">Register</button>
+                <button class="btn btn-primary" id="login-btn" onclick="redirect('/login')">Log in</button>
             </div>
         {% endif %}
 
