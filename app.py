@@ -311,6 +311,7 @@ def revert_password():
 @login_required
 def settings():
     db_sess = db_session.create_session()
+    database_user = db_sess.query(User).filter(User.id == current_user.id).first()
     settings_form = SettingsForm()
     if settings_form.is_submitted():
         if settings_form.username.data:  # The user has changed their username
@@ -319,6 +320,7 @@ def settings():
                                        message="There is already a user with the same username",
                                        current_user=current_user)
             current_user.username = settings_form.username
+            database_user.username = settings_form.username
 
         if settings_form.email.data:  # The user has changed their email
             db_sess = db_session.create_session()
@@ -327,6 +329,7 @@ def settings():
                                        message="There is already a user with the same email",
                                        current_user=current_user)
             current_user.email = settings_form.email
+            database_user.email = settings_form.email
 
         if settings_form.password.data:  # The user has changed their password
             if not match_passwords(settings_form):
@@ -348,6 +351,11 @@ def settings():
                                        message="Password should contain latin letters, numbers and other symbols",
                                        current_user=current_user)
             current_user.set_password(settings_form.password.data)
+            database_user.set_password(settings_form.password.data)
+
+        if settings_form.language.data:  # The user has changed their language
+            current_user.language = settings_form.language.data
+            database_user.language = settings_form.language.data
 
         if settings_form.image.data:  # The user has changed their image
             file = settings_form.image.data

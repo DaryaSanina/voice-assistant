@@ -41,6 +41,8 @@ class SettingsForm(FlaskForm):
     email = EmailField(render_kw={"placeholder": "Email"})
     password = PasswordField(render_kw={"placeholder": "Password"})
     password_again = PasswordField(render_kw={"placeholder": "Repeat password"})
+    languages = [LANGUAGES[key] for key in LANGUAGES.keys()]
+    language = SelectField('Language', choices=languages, default="english")
     image = FileField('Image')
     submit = SubmitField('Update')
 
