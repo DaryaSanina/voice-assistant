@@ -190,7 +190,8 @@ def login():
     login_form = LoginForm()
     if login_form.validate_on_submit():
         db_sess = db_session.create_session()
-        if re.fullmatch(r'[A-Za-z0-9]+@[A-Za-z0-9]+\.[a-z]+', login_form.username_or_email.data):
+        if re.fullmatch(r'[A-Za-z0-9!-/:-@\[-`{-~]+@[A-Za-z0-9]+\.[a-z]+',
+                        login_form.username_or_email.data):
             # The user has inputted an email
             user = db_sess.query(User).filter(User.email == login_form.username_or_email.data)\
                 .first()
