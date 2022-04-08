@@ -19,13 +19,14 @@
                 <p class="navbar-brand">{{ current_user.username }}</p>
                 <img id="user-image" src="{{ current_user.path_to_image }}" alt="user image">
                 <div class="dropdown-content">
-                    <a href="/logout">Log out</a>
+                    <a href="/settings">Settings</a>
+                    <a href="/logout">Logout</a>
                 </div>
             </div>
         {% else %}
             <div id="login-and-register-buttons">
                 <button class="btn btn-primary" id="register-btn" onclick="redirect('/register')">Register</button>
-                <button class="btn btn-primary" id="login-btn" onclick="redirect('/login')">Log in</button>
+                <button class="btn btn-primary" id="login-btn" onclick="redirect('/login')">Login</button>
             </div>
         {% endif %}
 

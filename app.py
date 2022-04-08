@@ -7,9 +7,9 @@ from flask_login import LoginManager, current_user, login_user, logout_user, log
 
 import events
 from messages import Message
-from forms import TextMessageInputForm, RegisterForm, LoginForm, ForgotPasswordForm,\
-    match_registration_passwords, check_registration_password_length,\
-    check_registration_password_case, check_registration_password_letters_and_digits
+from forms import TextMessageInputForm, RegisterForm, LoginForm, ForgotPasswordForm, SettingsForm,\
+    match_passwords, check_password_length,\
+    check_password_case, check_password_letters_and_digits
 import assistant
 import speech
 import send_email
@@ -170,21 +170,21 @@ def index():
 def register():
     register_form = RegisterForm()
     if register_form.validate_on_submit():
-        if not match_registration_passwords(register_form):
+        if not match_passwords(register_form):
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Passwords don't match", current_user=current_user)
 
-        if not check_registration_password_length(register_form):
+        if not check_password_length(register_form):
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Password should be from 8 to 16 characters long",
                                    current_user=current_user)
 
-        if not check_registration_password_case(register_form):
+        if not check_password_case(register_form):
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Password should contain letters in lower and upper cases",
                                    current_user=current_user)
 
-        if not check_registration_password_letters_and_digits(register_form):
+        if not check_password_letters_and_digits(register_form):
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Password should contain latin letters, numbers and other symbols",
                                    current_user=current_user)
@@ -207,7 +207,6 @@ def register():
         user.set_password(register_form.password.data)
 
         if register_form.image.data:
-            print(register_form.image.data)
             file = register_form.image.data
             file.save(f'static\\images\\user_images\\{register_form.username.data}.png')
             image.resize_image(f'static\\images\\user_images\\{register_form.username.data}.png')
@@ -301,6 +300,59 @@ def revert_password():
     user.hashed_password = user.previous_hashed_password
     db_sess.commit()
     return redirect('/')
+
+
+@app.route('/settings', methods=['POST', 'GET'])
+@login_required
+def settings():
+    db_sess = db_session.create_session()
+    settings_form = SettingsForm()
+    if settings_form.is_submitted():
+        if settings_form.username.data:  # The user has changed their username
+            if db_sess.query(User).filter(User.username == settings_form.username.data).first():
+                return render_template('settings.html', title='Settings', form=settings_form,
+                                       message="There is already a user with the same username",
+                                       current_user=current_user)
+            current_user.username = settings_form.username
+
+        if settings_form.email.data:  # The user has changed their email
+            db_sess = db_session.create_session()
+            if db_sess.query(User).filter(User.email == settings_form.email.data).first():
+                return render_template('settings.html', title='Settings', form=settings_form,
+                                       message="There is already a user with the same email",
+                                       current_user=current_user)
+            current_user.email = settings_form.email
+
+        if settings_form.password.data:  # The user has changed their password
+            if not match_passwords(settings_form):
+                return render_template('settings.html', title='Registration', form=settings_form,
+                                       message="Passwords don't match", current_user=current_user)
+
+            if not check_password_length(settings_form):
+                return render_template('settings.html', title='Registration', form=settings_form,
+                                       message="Password should be from 8 to 16 characters long",
+                                       current_user=current_user)
+
+            if not check_password_case(settings_form):
+                return render_template('settings.html', title='Registration', form=settings_form,
+                                       message="Password should contain letters in lower and upper cases",
+                                       current_user=current_user)
+
+            if not check_password_letters_and_digits(settings_form):
+                return render_template('settings.html', title='Registration', form=settings_form,
+                                       message="Password should contain latin letters, numbers and other symbols",
+                                       current_user=current_user)
+            current_user.set_password(settings_form.password.data)
+
+        if settings_form.image.data:  # The user has changed their image
+            file = settings_form.image.data
+            file.save(f'static\\images\\user_images\\{current_user.username}.png')
+            image.resize_image(f'static\\images\\user_images\\{current_user.username}.png')
+
+        db_sess.commit()
+        return redirect('/')
+    return render_template('settings.html', title='Registration', form=settings_form,
+                           current_user=current_user)
 
 
 def generate_password():
