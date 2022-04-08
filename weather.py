@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from flask import request
 
-from nlp import nlp
+from global_variables import nlp
 
 # Get weather API key
 path = os.path.join(os.path.dirname(__file__), '.env')

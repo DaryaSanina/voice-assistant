@@ -28,6 +28,11 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Log in')
 
 
+class ForgotPasswordForm(FlaskForm):
+    email = EmailField(validators=[DataRequired()], render_kw={"placeholder": "Email"})
+    submit = SubmitField('Send email with new password')
+
+
 def check_registration_password_length(form: RegisterForm):
     return 8 <= len(form.password.data) <= 16
 

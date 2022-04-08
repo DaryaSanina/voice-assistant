@@ -1,6 +1,6 @@
 from googletrans import Translator
 import nltk
-from nlp import nlp
+from global_variables import nlp
 
 
 translator = Translator()
