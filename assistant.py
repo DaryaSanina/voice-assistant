@@ -6,14 +6,24 @@ import currency_rate
 import search
 
 import re
+from googletrans import Translator
 
 close_tab = False
 link_to_search = ""
 search_in_the_internet = True
 
+translator = Translator()
 
-def answer(user_message_text: str) -> str:
+
+def answer(user_message_text: str, user_language="english") -> str:
+    if user_language != "english":  # Translate the message into English
+        user_message_text = translator.translate(text=user_message_text, src=user_language).text
+
     answer_text = recognize_user_intention(user_message_text)
+
+    if user_language != "english":  # Translate the assistant's answer into the user's language
+        answer_text = translator.translate(text=answer_text, dest=user_language).text
+
     speech.save_assistant_speech(answer_text)
     return answer_text
 

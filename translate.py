@@ -16,12 +16,12 @@ def translate_text(user_message_text: str) -> str:
     elif len(languages) == 1:
         detected_language = translator.detect(text)
         # If the user has stated the language of the text
-        if languages[0][:2] == detected_language or languages[0] == 'english':
+        if languages[0] == detected_language or languages[0] == 'english':
             translation = translator.translate(text)
         else:
-            translation = translator.translate(text, dest=languages[0][:2])
+            translation = translator.translate(text, dest=languages[0])
     else:
-        translation = translator.translate(text, src=languages[0][:2], dest=languages[1][:2])
+        translation = translator.translate(text, src=languages[0], dest=languages[0])
 
     return translation.text
 

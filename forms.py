@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField, FileField
+from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField, FileField, SelectField
 from wtforms.validators import DataRequired
 
 import re
+from googletrans import LANGUAGES
 
 
 class TextMessageInputForm(FlaskForm):
@@ -16,6 +17,8 @@ class RegisterForm(FlaskForm):
     password = PasswordField(validators=[DataRequired()], render_kw={"placeholder": "Password"})
     password_again = PasswordField(validators=[DataRequired()],
                                    render_kw={"placeholder": "Repeat password"})
+    languages = [LANGUAGES[key] for key in LANGUAGES.keys()]
+    language = SelectField('Language', choices=languages, default="english")
     image = FileField('Image')
     submit = SubmitField('Register')
 
@@ -38,6 +41,8 @@ class SettingsForm(FlaskForm):
     email = EmailField(render_kw={"placeholder": "Email"})
     password = PasswordField(render_kw={"placeholder": "Password"})
     password_again = PasswordField(render_kw={"placeholder": "Repeat password"})
+    languages = [LANGUAGES[key] for key in LANGUAGES.keys()]
+    language = SelectField('Language', choices=languages, default="english")
     image = FileField('Image')
     submit = SubmitField('Update')
 

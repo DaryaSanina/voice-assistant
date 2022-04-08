@@ -128,33 +128,49 @@ def index():
             sent_messages.append(Message(text_message_input_form.text.data, 'user'))
 
             # The assistant's answer
-            sent_messages.append(
-                Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
-
-            # Update the database
             if current_user.is_authenticated:
-                db_sess = db_session.create_session()
-                user_id = current_user.id
-
-                message = SentMessage(user_id=user_id, text=sent_messages[-2].text,
-                                      sender=sent_messages[-2].sender)
-                db_sess.add(message)
-
-                message = SentMessage(user_id=user_id, text=sent_messages[-1].text,
-                                      sender=sent_messages[-1].sender)
-                db_sess.add(message)
-
-                db_sess.commit()
+                sent_messages.append(
+                    Message(assistant.answer(text_message_input_form.text.data,
+                                             current_user.language), 'assistant'))
+            else:
+                sent_messages.append(
+                    Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
 
         elif request.files.get('speech_recording') is not None:  # If speech is recorded
             speech_recording_file = request.files['speech_recording']  # Request the recorded speech
-            recognized_data = speech.recognize(speech_recording_file)  # Recognize the speech
+
+            # Recognize the speech
+            if current_user.is_authenticated:
+                recognized_data = speech.recognize(speech_recording_file,
+                                                   user_language=current_user.language)
+            else:
+                recognized_data = speech.recognize(speech_recording_file)
 
             # The user's message
             sent_messages.append(Message(recognized_data, 'user'))
 
             # The assistant's answer
-            sent_messages.append(Message(assistant.answer(recognized_data), 'assistant'))
+            if current_user.is_authenticated:
+                sent_messages.append(
+                    Message(assistant.answer(recognized_data, current_user.language), 'assistant'))
+            else:
+                sent_messages.append(
+                    Message(assistant.answer(recognized_data), 'assistant'))
+
+        # Update the database
+        if current_user.is_authenticated:
+            db_sess = db_session.create_session()
+            user_id = current_user.id
+
+            message = SentMessage(user_id=user_id, text=sent_messages[-2].text,
+                                  sender=sent_messages[-2].sender)
+            db_sess.add(message)
+
+            message = SentMessage(user_id=user_id, text=sent_messages[-1].text,
+                                  sender=sent_messages[-1].sender)
+            db_sess.add(message)
+
+            db_sess.commit()
 
         play_audio_answer = True
         return redirect('/')
@@ -206,6 +222,11 @@ def register():
         )
         user.set_password(register_form.password.data)
 
+        # Set the language
+        if register_form.language.data:
+            user.language = register_form.language.data
+
+        # Set the image
         if register_form.image.data:
             file = register_form.image.data
             file.save(f'static\\images\\user_images\\{register_form.username.data}.png')
@@ -306,6 +327,7 @@ def revert_password():
 @login_required
 def settings():
     db_sess = db_session.create_session()
+    database_user = db_sess.query(User).filter(User.id == current_user.id).first()
     settings_form = SettingsForm()
     if settings_form.is_submitted():
         if settings_form.username.data:  # The user has changed their username
@@ -314,6 +336,7 @@ def settings():
                                        message="There is already a user with the same username",
                                        current_user=current_user)
             current_user.username = settings_form.username
+            database_user.username = settings_form.username
 
         if settings_form.email.data:  # The user has changed their email
             db_sess = db_session.create_session()
@@ -322,6 +345,7 @@ def settings():
                                        message="There is already a user with the same email",
                                        current_user=current_user)
             current_user.email = settings_form.email
+            database_user.email = settings_form.email
 
         if settings_form.password.data:  # The user has changed their password
             if not match_passwords(settings_form):
@@ -343,6 +367,11 @@ def settings():
                                        message="Password should contain latin letters, numbers and other symbols",
                                        current_user=current_user)
             current_user.set_password(settings_form.password.data)
+            database_user.set_password(settings_form.password.data)
+
+        if settings_form.language.data:  # The user has changed their language
+            current_user.language = settings_form.language.data
+            database_user.language = settings_form.language.data
 
         if settings_form.image.data:  # The user has changed their image
             file = settings_form.image.data
