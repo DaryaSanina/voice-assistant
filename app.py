@@ -128,33 +128,49 @@ def index():
             sent_messages.append(Message(text_message_input_form.text.data, 'user'))
 
             # The assistant's answer
-            sent_messages.append(
-                Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
-
-            # Update the database
             if current_user.is_authenticated:
-                db_sess = db_session.create_session()
-                user_id = current_user.id
-
-                message = SentMessage(user_id=user_id, text=sent_messages[-2].text,
-                                      sender=sent_messages[-2].sender)
-                db_sess.add(message)
-
-                message = SentMessage(user_id=user_id, text=sent_messages[-1].text,
-                                      sender=sent_messages[-1].sender)
-                db_sess.add(message)
-
-                db_sess.commit()
+                sent_messages.append(
+                    Message(assistant.answer(text_message_input_form.text.data,
+                                             current_user.language), 'assistant'))
+            else:
+                sent_messages.append(
+                    Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
 
         elif request.files.get('speech_recording') is not None:  # If speech is recorded
             speech_recording_file = request.files['speech_recording']  # Request the recorded speech
-            recognized_data = speech.recognize(speech_recording_file)  # Recognize the speech
+
+            # Recognize the speech
+            if current_user.is_authenticated:
+                recognized_data = speech.recognize(speech_recording_file,
+                                                   user_language=current_user.language)
+            else:
+                recognized_data = speech.recognize(speech_recording_file)
 
             # The user's message
             sent_messages.append(Message(recognized_data, 'user'))
 
             # The assistant's answer
-            sent_messages.append(Message(assistant.answer(recognized_data), 'assistant'))
+            if current_user.is_authenticated:
+                sent_messages.append(
+                    Message(assistant.answer(recognized_data, current_user.language), 'assistant'))
+            else:
+                sent_messages.append(
+                    Message(assistant.answer(recognized_data), 'assistant'))
+
+        # Update the database
+        if current_user.is_authenticated:
+            db_sess = db_session.create_session()
+            user_id = current_user.id
+
+            message = SentMessage(user_id=user_id, text=sent_messages[-2].text,
+                                  sender=sent_messages[-2].sender)
+            db_sess.add(message)
+
+            message = SentMessage(user_id=user_id, text=sent_messages[-1].text,
+                                  sender=sent_messages[-1].sender)
+            db_sess.add(message)
+
+            db_sess.commit()
 
         play_audio_answer = True
         return redirect('/')

@@ -1,4 +1,4 @@
-from googletrans import Translator, LANGCODES
+from googletrans import Translator
 import nltk
 from global_variables import nlp
 

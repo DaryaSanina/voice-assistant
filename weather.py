@@ -112,7 +112,7 @@ def get_weather(user_message_text) -> str:
         return "Sorry, couldn't get location. Please enter it manually"
 
     # Determine the day delta
-    delta_days = get_delta_days_from_text(user_message_text)
+    delta_days = get_delta_days_from_text(user_message_text)[0]
 
     if delta_days == 0:  # Get current weather
         url = 'http://api.openweathermap.org/data/2.5/find'
