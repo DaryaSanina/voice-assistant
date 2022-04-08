@@ -206,6 +206,11 @@ def register():
         )
         user.set_password(register_form.password.data)
 
+        # Set the language
+        if register_form.language.data:
+            user.language = register_form.language.data
+
+        # Set the image
         if register_form.image.data:
             file = register_form.image.data
             file.save(f'static\\images\\user_images\\{register_form.username.data}.png')
