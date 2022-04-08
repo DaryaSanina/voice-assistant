@@ -180,6 +180,8 @@ def register():
         user.set_password(register_form.password.data)
         db_sess.add(user)
         db_sess.commit()
+
+        login_user(user, remember=True)
         return redirect('/')
     return render_template('register.html', title="Registration", form=register_form,
                            current_user=current_user)
@@ -195,6 +197,10 @@ def login():
             # The user has inputted an email
             user = db_sess.query(User).filter(User.email == login_form.username_or_email.data)\
                 .first()
+            if not user:
+                # The user has inputted a username
+                user = db_sess.query(User).filter(User.username == login_form.username_or_email.data) \
+                    .first()
         else:
             # The user has inputted a username
             user = db_sess.query(User).filter(User.username == login_form.username_or_email.data)\
