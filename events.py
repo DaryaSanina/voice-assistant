@@ -1,5 +1,5 @@
 import weather
-from nlp import nlp
+from global_variables import nlp
 
 import datetime
 import nltk

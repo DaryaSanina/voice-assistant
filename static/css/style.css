@@ -1,6 +1,7 @@
 span.user-message {
     float: right;
-    padding: 10px;
+    padding: 5px 10px;
+    text-align: justify;
 
     background-color: #006FC4;
     color: white;
@@ -8,9 +9,70 @@ span.user-message {
 }
 
 span.assistant-message {
-    padding: 10px;
+    padding: 5px 10px;
+    text-align: justify;
 
     background-color: #252323;
     color: white;
     font-size: 20px;
+}
+
+#title_ {
+    display:inline-block;
+    float: left;
+}
+
+#login_and_register_buttons {
+    display:inline-block;
+    float: right;
+}
+
+#register_btn {
+    display:inline-block;
+    float: right;
+}
+
+#login-btn {
+    display:inline-block;
+    float: left;
+    margin-right: 5px;
+}
+
+#username_and_picture {
+    display:inline-block;
+    float: right;
+}
+
+.dropdown {
+    position: absolute;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+#text-input{
+    height: 48px;
+    border-radius: 24px;
+}
+
+#send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: url("../images/send_btn.png");
+}
+#record-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: url("../images/record_btn.png");
 }
