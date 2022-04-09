@@ -18,14 +18,29 @@ wiki_wiki = wikipediaapi.Wikipedia(
     extract_format=wikipediaapi.ExtractFormat.WIKI
 )
 
+YANDEX_LANGCODES = {"russian": "ru", "english": "en", "belorussian": "be", "french": "fr",
+                    "german": "de", "indonesian": "id", "kazakh": "kk", "tatar": "tt",
+                    "turkish": "tr", "ukrainian": "uk"}
 
-def search(query: str):
-    params = {
-        "engine": "yandex",
-        'yandex_domain': 'yandex.ru',
-        "text": query,
-        "api_key": SEARCH_API_KEY
-    }
+
+def search(query: str, language: str):
+    if language not in YANDEX_LANGCODES.keys():
+        params = {
+            "engine": "yandex",
+            'yandex_domain': 'yandex.ru',
+            "text": query,
+            "api_key": SEARCH_API_KEY,
+            "lang": "en"
+        }
+    else:
+        params = {
+            "engine": "yandex",
+            'yandex_domain': 'yandex.ru',
+            "text": query,
+            "api_key": SEARCH_API_KEY,
+            "lang": YANDEX_LANGCODES[language]
+        }
+
     search_ = GoogleSearch(params)
     results = search_.get_dict()
     organic_results = results['organic_results']  # Results of the search
@@ -38,7 +53,7 @@ def search(query: str):
 
     for result in organic_results:
         link = result['link']
-        if re.findall(r'en\.wikipedia', link):  # If there is a Wikipedia link in the results
+        if re.findall(r'wikipedia', link):  # If there is a Wikipedia link in the results
             assistant.link_to_search = link
             topic = link.split('/')[-1]
             return search_wikipedia(topic)
