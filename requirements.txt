@@ -37,7 +37,6 @@ Pillow==9.1.0
 preshed==3.0.6
 pydantic==1.8.2
 pyparsing==3.0.7
-pypiwin32==223
 python-dotenv==0.19.2
 pyttsx3==2.90
 regex==2022.3.15
