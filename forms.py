@@ -8,7 +8,7 @@ from googletrans import LANGUAGES
 
 class TextMessageInputForm(FlaskForm):
     text = StringField(validators=[DataRequired()], render_kw={"placeholder": "Type your message"})
-    send = SubmitField('Send', validators=[DataRequired()])
+    send = SubmitField('')
 
 
 class RegisterForm(FlaskForm):
