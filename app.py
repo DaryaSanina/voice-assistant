@@ -1,6 +1,7 @@
 import re
 import datetime
 import random
+import nltk
 
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
@@ -422,6 +423,7 @@ def generate_password():
 
 
 if __name__ == '__main__':
+    nltk.download()
     speech.setup_assistant_voice()
     db_session.global_init("db/users.db")
     app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST, debug=True)
