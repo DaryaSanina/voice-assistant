@@ -33,14 +33,14 @@ def get_text_to_translate(text) -> str:
 
     # Add language names (with prepositions before them) to words_not_to_translate
     tokens = nltk.word_tokenize(' '.join(text))  # Split the text into words
-    tagged_words = nltk.pos_tag(tokens)  # Get a tag to each word in the text
+    tagged_words = [list(i) for i in nltk.pos_tag(tokens)]  # Get a tag to each word in the text
     for i in range(len(tagged_words)):
         if i < len(tagged_words) - 1 \
                 and ((tagged_words[i][1] == 'IN' or tagged_words[i][1] == 'TO')
                      and tagged_words[i + 1][0] in languages):
             tagged_words[i][0] = ""
             tagged_words[i + 1][0] = ""
-        elif tagged_words[i][0] in languages or stemmer.stem(tagged_words[i][0] == "translat"):
+        elif tagged_words[i][0] in languages or stemmer.stem(tagged_words[i][0]) == "translat":
             tagged_words[i][0] = ""
 
     words_to_translate = [word[0] for word in tagged_words if word[0]]
