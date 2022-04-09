@@ -22,10 +22,10 @@ def setup_assistant_voice():
     # The assistant's voice is
     # Microsoft Zira Desktop - English (United States)
     engine.setProperty("voice", voices[1].id)
+    engine.setProperty("rate", 178)
 
 
 def save_assistant_speech(text: str):
-    print(text)
     # Add a command to save the synthesized speech
     engine.save_to_file(text, filename=ASSISTANT_ANSWER_FILENAME)
 

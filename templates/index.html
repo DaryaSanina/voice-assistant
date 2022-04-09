@@ -18,17 +18,17 @@
 
         <form action="" method="post" novalidate>
             {{ text_message_input_form.hidden_tag() }}
-            <p>
-                {{ text_message_input_form.text(class="form-control") }}<br>
+            <p style="display: inline-block; width: 300px;">
+                {{ text_message_input_form.text(class="form-control", id="text-input") }}
                 {% for error in text_message_input_form.text.errors %}
                     <div class="alert alert-danger" role="alert">
-                        {{ error }}
+                        <br>{{ error }}
                     </div>
                 {% endfor %}
             </p>
-            <p>{{ text_message_input_form.send(type="submit", class="btn btn-primary") }}</p>
+            <p style="display: inline-block;">{{ text_message_input_form.send(type="submit", class="btn btn-primary", id="send-btn") }}</p>
         </form>
-        <button class="btn btn-primary" id="record_button">Record</button>
+        <button class="btn btn-primary" id="record-btn"></button>
         <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
         <script src="/static/js/record_audio.js"></script>
         {% if play_audio_answer %}
