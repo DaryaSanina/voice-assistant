@@ -35,7 +35,6 @@ packaging==21.3
 pathy==0.6.1
 Pillow==9.1.0
 preshed==3.0.6
-pyaudio-installer==1.0
 pydantic==1.8.2
 pyparsing==3.0.7
 pypiwin32==223
