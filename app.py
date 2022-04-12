@@ -33,8 +33,7 @@ login_manager.init_app(app)
 
 user_email_address = ''
 sent_messages = list()
-play_audio_answer = False
-played_audio_answer = False
+text_to_play_audio = ""
 
 
 @login_manager.user_loader
@@ -45,7 +44,7 @@ def load_user(user_id):
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    global play_audio_answer, played_audio_answer, sent_messages
+    global sent_messages, text_to_play_audio
 
     if current_user.is_authenticated:
         db_sess = db_session.create_session()
@@ -56,12 +55,6 @@ def index():
         sent_messages = list()
         for message in database_messages:
             sent_messages.append(Message(text=message.text, sender=message.sender))
-
-    if play_audio_answer and not played_audio_answer:
-        played_audio_answer = True
-    elif play_audio_answer and played_audio_answer:
-        play_audio_answer = False
-        played_audio_answer = False
 
     # Delete past events
     i = 0
@@ -118,8 +111,8 @@ def index():
     # Text message input form
     text_message_input_form = TextMessageInputForm()
     if request.method == 'POST':
-        if play_audio_answer:
-            play_audio_answer = False
+        if text_to_play_audio:
+            text_to_play_audio = ""
         if assistant.close_tab:
             assistant.close_tab = False
 
@@ -129,12 +122,11 @@ def index():
 
             # The assistant's answer
             if current_user.is_authenticated:
-                sent_messages.append(
-                    Message(assistant.answer(text_message_input_form.text.data,
-                                             current_user.language), 'assistant'))
+                answer = assistant.answer(text_message_input_form.text.data, current_user.language)
             else:
-                sent_messages.append(
-                    Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
+                answer = assistant.answer(text_message_input_form.text.data)
+            sent_messages.append(Message(answer, 'assistant'))
+            text_to_play_audio = answer
 
         elif request.files.get('speech_recording') is not None:  # If speech is recorded
             speech_recording_file = request.files['speech_recording']  # Request the recorded speech
@@ -151,11 +143,11 @@ def index():
 
             # The assistant's answer
             if current_user.is_authenticated:
-                sent_messages.append(
-                    Message(assistant.answer(recognized_data, current_user.language), 'assistant'))
+                answer = assistant.answer(recognized_data, current_user.language)
             else:
-                sent_messages.append(
-                    Message(assistant.answer(recognized_data), 'assistant'))
+                answer = assistant.answer(recognized_data)
+            sent_messages.append(Message(answer, 'assistant'))
+            text_to_play_audio = answer
 
         # Update the database
         if current_user.is_authenticated:
@@ -172,13 +164,12 @@ def index():
 
             db_sess.commit()
 
-        play_audio_answer = True
         return redirect('/')
 
     # Render HTML
     return render_template('index.html', title="Voice assistant", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
-                           play_audio_answer=play_audio_answer, close_tab=assistant.close_tab,
+                           text_to_play_audio=text_to_play_audio, close_tab=assistant.close_tab,
                            link_to_search=assistant.link_to_search, current_user=current_user)
 
 
@@ -422,6 +413,5 @@ def generate_password():
 
 
 if __name__ == '__main__':
-    speech.setup_assistant_voice()
     db_session.global_init("db/users.db")
     app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST)

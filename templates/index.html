@@ -31,10 +31,21 @@
         <button class="btn btn-primary" id="record-btn"></button>
         <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
         <script src="/static/js/record_audio.js"></script>
-        {% if play_audio_answer %}
-            <audio id="audio" autoplay>
-                <source id="audio_source" src="static/music/answer.wav" type="audio/wav">
-            </audio>
+        {% if text_to_play_audio %}
+            <script> // Play the message
+
+                let utter = new SpeechSynthesisUtterance();
+
+                window.speechSynthesis.onvoiceschanged = () => {
+                    // On Voices Loaded
+                    let voices = window.speechSynthesis.getVoices();
+                    utter.voice = voices[2];  // Setup the voice (Microsoft Zira voice)
+
+                    utter.text = "{{ text_to_play_audio }}";  // Setup the text
+
+                    window.speechSynthesis.speak(utter);  // Speak
+                };
+            </script>
         {% endif %}
 
 
