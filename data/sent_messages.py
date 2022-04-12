@@ -1,10 +1,8 @@
 import sqlalchemy
 from .db_session import SqlAlchemyBase
 
-from flask_login import UserMixin
 
-
-class SentMessage(SqlAlchemyBase, UserMixin):
+class SentMessage(SqlAlchemyBase):
     __tablename__ = 'sent_messages'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,

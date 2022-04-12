@@ -424,4 +424,4 @@ def generate_password():
 if __name__ == '__main__':
     speech.setup_assistant_voice()
     db_session.global_init("db/users.db")
-    app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST, debug=True)
+    app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST)
