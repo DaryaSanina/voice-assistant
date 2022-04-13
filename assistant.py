@@ -79,7 +79,6 @@ def recognize_user_intention(original_user_message_text: str,
 
     # Save an event
     if re.findall(r"plan|event", translated_user_message_text) \
-            or weather.get_geopolitical_entity_from_text(translated_user_message_text) \
             or weather.get_delta_days_from_text(translated_user_message_text)[0] \
             or events.get_time_from_text(translated_user_message_text)[0]:
         events.add_event(translated_user_message_text)
