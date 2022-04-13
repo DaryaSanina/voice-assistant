@@ -4,8 +4,10 @@ from global_variables import nlp
 import datetime
 import nltk
 
-stemmer = nltk.stem.PorterStemmer()
+from data import db_session
+from data.event_models import EventModel
 
+stemmer = nltk.stem.PorterStemmer()
 events = list()
 
 
@@ -19,6 +21,35 @@ class Event:
         self.notification_24_hours = False
         self.notification_2_hours = False
         self.notification_10_minutes = False
+
+
+def load_events(current_user):
+    global events
+
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
+        user_id = current_user.id
+
+        database_events = db_sess.query(EventModel) \
+            .filter(EventModel.user_id == user_id).all()
+        events = list()
+        for event in database_events:
+            events.append(Event(name=event.name, date=event.date, time=event.time,
+                                place=event.place))
+
+
+def update_database(current_user):
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
+
+        if not db_sess.query(EventModel).filter(EventModel.name == events[-1].name).first():
+            user_id = current_user.id
+
+            event = EventModel(user_id=user_id, name=events[-1].name, date=events[-1].date,
+                               time=events[-1].time, place=events[-1].place)
+            db_sess.add(event)
+
+            db_sess.commit()
 
 
 def get_time_from_text(text) -> (datetime.time, str):
@@ -60,24 +91,6 @@ def add_event(text):
         text = text[:word_start] + text[word_end + 1:]
         tokens = nltk.word_tokenize(text)
         tagged_words = nltk.pos_tag(tokens)
-
-    if text.find("event") != -1:
-        word_start = text.find("event")
-        word_end = word_start + 5
-        prev_word_end = word_start - 1
-        prev_word_start = prev_word_end
-        while prev_word_start > 0 and text[prev_word_start - 1] != ' ':
-            prev_word_start -= 1
-
-        if prev_word_start != prev_word_end \
-                and tagged_words[text.split().index(text[prev_word_start:prev_word_end])][1] == 'DT':
-            text = text[:word_start] + text[prev_word_end + 1:]
-            tokens = nltk.word_tokenize(text)
-            tagged_words = nltk.pos_tag(tokens)
-        else:
-            text = text[:word_start] + text[word_end + 1:]
-            tokens = nltk.word_tokenize(text)
-            tagged_words = nltk.pos_tag(tokens)
 
     if place:
         word_start = text.find(place)

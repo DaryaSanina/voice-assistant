@@ -71,10 +71,10 @@ def recognize_user_intention(original_user_message_text: str,
     if re.findall(r"plans|events", translated_user_message_text):
         answer_text = "Here are the events you have planned:"
         for event in events.events:
-            answer_text += f"   Name: {event['name']}; " \
-                           f"Date: {event['date']}; " \
-                           f"Time: {event['time']}; " \
-                           f"Place: {event['place']}."
+            answer_text += f"   Name: {event.name}; " \
+                           f"Date: {event.date}; " \
+                           f"Time: {event.time}; " \
+                           f"Place: {event.place}."
         return answer_text
 
     # Save an event

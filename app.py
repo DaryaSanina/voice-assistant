@@ -56,6 +56,8 @@ def index():
         for message in database_messages:
             sent_messages.append(Message(text=message.text, sender=message.sender))
 
+    events.load_events(current_user)
+
     # Delete past events
     i = 0
     while i < len(events.events):
@@ -79,7 +81,7 @@ def index():
                 time_left = "10 minutes"
                 event.notification_10_minutes = True
 
-            elif not event.notification_2_hours \
+            elif not event.notification_2_hours and not event.notification_10_minutes \
                 and (datetime.datetime(year=event.date.year, month=event.date.month,
                                        day=event.date.day, hour=event.time.hour,
                                        minute=event.time.minute) - datetime.datetime.now()) \
@@ -87,7 +89,8 @@ def index():
                 time_left = "2 hours"
                 event.notification_2_hours = True
 
-            elif not event.notification_24_hours \
+            elif not event.notification_24_hours and not event.notification_2_hours \
+                    and not event.notification_10_minutes \
                     and (datetime.datetime(year=event.date.year, month=event.date.month,
                                            day=event.date.day, hour=event.time.hour,
                                            minute=event.time.minute) - datetime.datetime.now()) \
@@ -143,7 +146,7 @@ def index():
 
             # The assistant's answer
             if current_user.is_authenticated:
-                answer = assistant.answer(recognized_data, current_user.language)
+                answer = assistant.answer(recognized_data, user_language=current_user.language)
             else:
                 answer = assistant.answer(recognized_data)
             sent_messages.append(Message(answer, 'assistant'))
@@ -164,6 +167,7 @@ def index():
 
             db_sess.commit()
 
+        events.update_database(current_user)
         return redirect('/')
 
     # Render HTML
