@@ -141,8 +141,8 @@ def get_weather(user_message_text) -> str:
         return "Sorry, I can predict weather only a week ahead :("
 
     # Return the forecast
-    return f'''Weather in {geopolitical_entity},
-    {datetime.date.today() + datetime.timedelta(days=delta_days)}:
-    {description.capitalize()}
-    Temperature: {temperature}°C
-    Pressure: {pressure}hPa'''
+    return f"Weather in {geopolitical_entity}, " \
+           f"{datetime.date.today() + datetime.timedelta(days=delta_days)}: " \
+           f"{description.capitalize()}; " \
+           f"Temperature: {temperature}°C; " \
+           f"Pressure: {pressure}hPa"

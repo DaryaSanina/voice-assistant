@@ -35,6 +35,7 @@
             <script> // Play the message
 
                 let utter = new SpeechSynthesisUtterance();
+                console.log("{{ text_to_play_audio }}")
 
                 window.speechSynthesis.onvoiceschanged = () => {
                     // On Voices Loaded

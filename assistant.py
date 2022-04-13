@@ -1,5 +1,4 @@
 import events
-import speech
 import weather
 import translate
 import currency_rate
@@ -31,9 +30,8 @@ def answer(user_message_text: str, user_language="english") -> str:
     if user_language != "english":  # Translate the assistant's answer into the user's language
         answer_text = translator.translate(text=answer_text, dest=user_language).text
 
-    speech.save_assistant_speech(answer_text)
     if link_to_search:
-        return answer_text + '\n' + link_to_search
+        return answer_text + ' ' + link_to_search
     return answer_text
 
 
@@ -73,7 +71,10 @@ def recognize_user_intention(original_user_message_text: str,
     if re.findall(r"plans|events", translated_user_message_text):
         answer_text = "Here are the events you have planned:"
         for event in events.events:
-            answer_text += f"\n\nName: {event['name']}\nDate: {event['date']}\nTime: {event['time']}\n Place: {event['place']}"
+            answer_text += f"   Name: {event['name']}; " \
+                           f"Date: {event['date']}; " \
+                           f"Time: {event['time']}; " \
+                           f"Place: {event['place']}."
         return answer_text
 
     # Save an event
@@ -82,10 +83,10 @@ def recognize_user_intention(original_user_message_text: str,
             or weather.get_delta_days_from_text(translated_user_message_text)[0] \
             or events.get_time_from_text(translated_user_message_text)[0]:
         events.add_event(translated_user_message_text)
-        return f"""Name: {events.events[-1].name}
-        Date: {events.events[-1].date}
-        Time: {events.events[-1].time}
-        Place: {events.events[-1].place}"""
+        return f"Name: {events.events[-1].name}; " \
+               f"Date: {events.events[-1].date}; " \
+               f"Time: {events.events[-1].time}; " \
+               f"Place: {events.events[-1].place}"
 
     # Toss a coin
     if re.findall("toss", translated_user_message_text) and re.findall("coin", translated_user_message_text):
