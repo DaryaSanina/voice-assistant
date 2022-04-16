@@ -1,12 +1,5 @@
 wordnet
 pros_cons
 reuters
-hmm_treebank_pos_tagger
-maxent_treebank_pos_tagger
-universal_tagset
 punkt
-rslp
-porter_test
-vader_lexicon
-treebank
-dependency_treebank
+averaged_perceptron_tagger
