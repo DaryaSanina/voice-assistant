@@ -10,6 +10,7 @@ def send_forgot_password_email(address, password):
     from_address = os.getenv('FROM')
     email_password = os.getenv('PASSWORD')
 
+    # Create a message
     message = MIMEMultipart()
     message['From'] = from_address
     message['To'] = address
@@ -26,8 +27,9 @@ def send_forgot_password_email(address, password):
     If you didn't want to change your password, click <a href="http://{SERVER_ADDRESS_HOST}:{SERVER_ADDRESS_PORT}/revert-password">here</a> to revert it.
 </body>
 </html>'''
-    message.attach(MIMEText(html, 'html'))
+    message.attach(MIMEText(html, 'html'))  # Add the html to the message
 
+    # Prepare and send the message
     server = smtplib.SMTP_SSL(os.getenv('HOST'), os.getenv('PORT'))  # Create a server
     server.login(from_address, email_password)  # Log in to the server
 

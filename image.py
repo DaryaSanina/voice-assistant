@@ -7,4 +7,3 @@ def resize_image(file):
     image = Image.open(file)
     image.thumbnail(USER_IMAGE_SIZE, Image.ANTIALIAS)
     image.save(file, 'PNG')
-

@@ -33,35 +33,35 @@ login_manager.init_app(app)
 
 user_email_address = ''
 sent_messages = list()
-play_audio_answer = False
-played_audio_answer = False
+text_to_play_audio = ""
 
 
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_id: int) -> User:
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
 
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    global play_audio_answer, played_audio_answer, sent_messages
+    global sent_messages, text_to_play_audio
 
+    # Load the user's messages from the database
     if current_user.is_authenticated:
         db_sess = db_session.create_session()
         user_id = current_user.id
 
+        # Find the user's messages
         database_messages = db_sess.query(SentMessage)\
             .filter(SentMessage.user_id == user_id).all()
+
+        # Load the user's messages
         sent_messages = list()
         for message in database_messages:
             sent_messages.append(Message(text=message.text, sender=message.sender))
 
-    if play_audio_answer and not played_audio_answer:
-        played_audio_answer = True
-    elif play_audio_answer and played_audio_answer:
-        play_audio_answer = False
-        played_audio_answer = False
+    # Load the user's events from the database
+    events.events = events.load_events(current_user)
 
     # Delete past events
     i = 0
@@ -77,7 +77,9 @@ def index():
     # Notify the user about upcoming events
     for event in events.events:
         time_left = ""
-        if event.time:
+        if event.time:  # The event has time
+
+            # The event is in 10 minutes
             if not event.notification_10_minutes \
                 and (datetime.datetime(year=event.date.year, month=event.date.month,
                                        day=event.date.day, hour=event.time.hour,
@@ -86,7 +88,8 @@ def index():
                 time_left = "10 minutes"
                 event.notification_10_minutes = True
 
-            elif not event.notification_2_hours \
+            # The event is in 2 hours
+            elif not event.notification_2_hours and not event.notification_10_minutes \
                 and (datetime.datetime(year=event.date.year, month=event.date.month,
                                        day=event.date.day, hour=event.time.hour,
                                        minute=event.time.minute) - datetime.datetime.now()) \
@@ -94,7 +97,9 @@ def index():
                 time_left = "2 hours"
                 event.notification_2_hours = True
 
-            elif not event.notification_24_hours \
+            # The event is in 24 hours
+            elif not event.notification_24_hours and not event.notification_2_hours \
+                    and not event.notification_10_minutes \
                     and (datetime.datetime(year=event.date.year, month=event.date.month,
                                            day=event.date.day, hour=event.time.hour,
                                            minute=event.time.minute) - datetime.datetime.now()) \
@@ -102,12 +107,14 @@ def index():
                 time_left = "1 day"
                 event.notification_24_hours = True
 
+        # The event doesn't have time
         elif not event.notification_24_hours \
                 and (event.date - datetime.date.today()) < datetime.timedelta(days=1):
+            # The event is in 1 day
             time_left = "1 day"
             event.notification_24_hours = True
 
-        if time_left:
+        if time_left:  # If the event is in 1 day, 2 hours or 10 minutes
             sent_messages.append(Message(
                 f"""You have an event in {time_left}
                 Name: {event.name}
@@ -117,11 +124,10 @@ def index():
 
     # Text message input form
     text_message_input_form = TextMessageInputForm()
+
     if request.method == 'POST':
-        if play_audio_answer:
-            play_audio_answer = False
-        if assistant.close_tab:
-            assistant.close_tab = False
+        if text_to_play_audio:
+            text_to_play_audio = ""
 
         if text_message_input_form.validate_on_submit():  # If the user has sent a text message
             # The user's message
@@ -129,12 +135,11 @@ def index():
 
             # The assistant's answer
             if current_user.is_authenticated:
-                sent_messages.append(
-                    Message(assistant.answer(text_message_input_form.text.data,
-                                             current_user.language), 'assistant'))
+                answer = assistant.answer(text_message_input_form.text.data, current_user.language)
             else:
-                sent_messages.append(
-                    Message(assistant.answer(text_message_input_form.text.data), 'assistant'))
+                answer = assistant.answer(text_message_input_form.text.data)
+            sent_messages.append(Message(answer, 'assistant'))
+            text_to_play_audio = answer
 
         elif request.files.get('speech_recording') is not None:  # If speech is recorded
             speech_recording_file = request.files['speech_recording']  # Request the recorded speech
@@ -151,11 +156,11 @@ def index():
 
             # The assistant's answer
             if current_user.is_authenticated:
-                sent_messages.append(
-                    Message(assistant.answer(recognized_data, current_user.language), 'assistant'))
+                answer = assistant.answer(recognized_data, user_language=current_user.language)
             else:
-                sent_messages.append(
-                    Message(assistant.answer(recognized_data), 'assistant'))
+                answer = assistant.answer(recognized_data)
+            sent_messages.append(Message(answer, 'assistant'))
+            text_to_play_audio = answer
 
         # Update the database
         if current_user.is_authenticated:
@@ -172,13 +177,19 @@ def index():
 
             db_sess.commit()
 
-        play_audio_answer = True
+        events.update_database(current_user)
+
+        if assistant.log_out:
+            assistant.log_out = False
+            if current_user.is_authenticated:
+                return redirect('/logout')
+
         return redirect('/')
 
     # Render HTML
     return render_template('index.html', title="Voice assistant", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
-                           play_audio_answer=play_audio_answer, close_tab=assistant.close_tab,
+                           text_to_play_audio=text_to_play_audio,
                            link_to_search=assistant.link_to_search, current_user=current_user)
 
 
@@ -186,35 +197,47 @@ def index():
 def register():
     register_form = RegisterForm()
     if register_form.validate_on_submit():
+        # The user has submitted the registration form and the data is valid
+
         if not match_passwords(register_form):
+            # Passwords in "Password" and "Repeat password" fields don't match
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Passwords don't match", current_user=current_user)
 
         if not check_password_length(register_form):
+            # The password is < 8 characters or > 16 characters
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Password should be from 8 to 16 characters long",
                                    current_user=current_user)
 
         if not check_password_case(register_form):
+            # The password is only in lower case or only in upper case
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Password should contain letters in lower and upper cases",
                                    current_user=current_user)
 
         if not check_password_letters_and_digits(register_form):
+            # The password doesn't have letters, digits or other ASCII symbols
             return render_template('register.html', title='Registration', form=register_form,
                                    message="Password should contain latin letters, numbers and other symbols",
                                    current_user=current_user)
+        # The password is OK
 
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.username == register_form.username.data).first():
+            # There is already a user with the same username
             return render_template('register.html', title='Registration', form=register_form,
                                    message="There is already a user with the same username",
                                    current_user=current_user)
+        # The username is OK
 
         if db_sess.query(User).filter(User.email == register_form.email.data).first():
+            # There is already a user with the same email
             return render_template('register.html', title='Registration', form=register_form,
                                    message="There is already a user with the same email",
                                    current_user=current_user)
+        # The email is OK
+        # All registration data is OK
 
         user = User(
             username=register_form.username.data,
@@ -241,6 +264,8 @@ def register():
 
         login_user(user, remember=True)
         return redirect('/')
+
+    # The registration form data isn't valid
     return render_template('register.html', title="Registration", form=register_form,
                            current_user=current_user)
 
@@ -249,6 +274,8 @@ def register():
 def login():
     login_form = LoginForm()
     if login_form.validate_on_submit():
+        # The user has submitted the login form and the data is valid
+
         db_sess = db_session.create_session()
         if re.fullmatch(r'[A-Za-z0-9!-/:-@\[-`{-~]+@[A-Za-z0-9]+\.[a-z]+',
                         login_form.username_or_email.data):
@@ -257,17 +284,19 @@ def login():
                 .first()
             if not user:
                 # The user has inputted a username
-                user = db_sess.query(User).filter(User.username == login_form.username_or_email.data) \
-                    .first()
+                user = db_sess.query(User)\
+                    .filter(User.username == login_form.username_or_email.data).first()
         else:
             # The user has inputted a username
-            user = db_sess.query(User).filter(User.username == login_form.username_or_email.data)\
-                .first()
+            user = db_sess.query(User)\
+                .filter(User.username == login_form.username_or_email.data).first()
 
         if user and user.check_password(login_form.password.data):
             # The user has inputted correct password
             login_user(user, remember=login_form.remember_me.data)
             return redirect('/')
+
+    # The login form data isn't valid
     return render_template('login.html', title="Authorization", form=login_form,
                            current_user=current_user)
 
@@ -277,9 +306,9 @@ def login():
 def logout():
     global sent_messages
 
-    sent_messages = list()
-    logout_user()
-    return redirect('/')
+    sent_messages = list()  # Clear the messages
+    logout_user()  # Logout
+    return redirect('/')  # Redirect to the main page
 
 
 @app.route('/forgot-password', methods=['POST', 'GET'])
@@ -288,10 +317,13 @@ def forgot_password():
 
     forgot_password_form = ForgotPasswordForm()
     if forgot_password_form.validate_on_submit():
+        # The user has submitted the password recovery form and the data is valid
+
         db_sess = db_session.create_session()
+        # Search for the user with email as in the form
         user = db_sess.query(User).filter(User.email == forgot_password_form.email.data).first()
 
-        if user:
+        if user:  # There is a user with email as in the form
             user_email_address = forgot_password_form.email.data
             new_password = generate_password()  # Generate a new password
             # Send an email with the new password
@@ -305,10 +337,8 @@ def forgot_password():
             redirect('/register')
 
         return "We've sent you a new password on your email"
-    elif forgot_password_form.is_submitted():
-        return render_template('forgot_password.html', title="Password recovery",
-                               form=forgot_password_form, current_user=current_user,
-                               message="Please enter your email")
+
+    # The password recovery form data isn't valid
     return render_template('forgot_password.html', title="Password recovery",
                            form=forgot_password_form, current_user=current_user)
 
@@ -332,40 +362,52 @@ def settings():
     if settings_form.is_submitted():
         if settings_form.username.data:  # The user has changed their username
             if db_sess.query(User).filter(User.username == settings_form.username.data).first():
+                # There is already a user with the same username
                 return render_template('settings.html', title='Settings', form=settings_form,
                                        message="There is already a user with the same username",
                                        current_user=current_user)
+            # The username is OK
+
             current_user.username = settings_form.username
             database_user.username = settings_form.username
 
         if settings_form.email.data:  # The user has changed their email
             db_sess = db_session.create_session()
             if db_sess.query(User).filter(User.email == settings_form.email.data).first():
+                # There is already a user with the same email
                 return render_template('settings.html', title='Settings', form=settings_form,
                                        message="There is already a user with the same email",
                                        current_user=current_user)
+            # The email is OK
+
             current_user.email = settings_form.email
             database_user.email = settings_form.email
 
         if settings_form.password.data:  # The user has changed their password
             if not match_passwords(settings_form):
+                # Passwords in "Password" and "Repeat password" fields don't match
                 return render_template('settings.html', title='Registration', form=settings_form,
                                        message="Passwords don't match", current_user=current_user)
 
             if not check_password_length(settings_form):
+                # The password is < 8 characters or > 16 characters
                 return render_template('settings.html', title='Registration', form=settings_form,
                                        message="Password should be from 8 to 16 characters long",
                                        current_user=current_user)
 
             if not check_password_case(settings_form):
+                # The password is only in lower case or only in upper case
                 return render_template('settings.html', title='Registration', form=settings_form,
                                        message="Password should contain letters in lower and upper cases",
                                        current_user=current_user)
 
             if not check_password_letters_and_digits(settings_form):
+                # The password doesn't have letters, digits or other ASCII symbols
                 return render_template('settings.html', title='Registration', form=settings_form,
                                        message="Password should contain latin letters, numbers and other symbols",
                                        current_user=current_user)
+            # The password is OK
+
             current_user.set_password(settings_form.password.data)
             database_user.set_password(settings_form.password.data)
 
@@ -384,7 +426,10 @@ def settings():
                            current_user=current_user)
 
 
-def generate_password():
+def generate_password() -> str:
+    # Generate a password (8 to 16 characters)
+    # with lowercase and uppercase letters, digits and other ASCII symbols
+
     length = random.randint(8, 16)
     uppercase_letters_count = min(random.randint(1, length - 3),
                                   len(UNICODE_UPPERCASE_LETTER_CODES))
@@ -404,6 +449,7 @@ def generate_password():
 
     password = list()
     while list(unicode_symbol_counts.keys()):
+        # Generate a symbol
         key = random.choice(list(unicode_symbol_counts.keys()))
         if key == "uppercase letters":
             password.append(chr(random.choice(UNICODE_UPPERCASE_LETTER_CODES)))
@@ -422,6 +468,5 @@ def generate_password():
 
 
 if __name__ == '__main__':
-    speech.setup_assistant_voice()
     db_session.global_init("db/users.db")
-    app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST, debug=True)
+    app.run(port=SERVER_ADDRESS_PORT, host=SERVER_ADDRESS_HOST)

@@ -19,7 +19,7 @@
         <form action="" method="post" novalidate>
             {{ text_message_input_form.hidden_tag() }}
             <p style="display: inline-block; width: 300px;">
-                {{ text_message_input_form.text(class="form-control", id="text-input") }}
+                {{ text_message_input_form.text(class="form-control", id="text-input", autocomplete="off") }}
                 {% for error in text_message_input_form.text.errors %}
                     <div class="alert alert-danger" role="alert">
                         <br>{{ error }}
@@ -31,22 +31,29 @@
         <button class="btn btn-primary" id="record-btn"></button>
         <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
         <script src="/static/js/record_audio.js"></script>
-        {% if play_audio_answer %}
-            <audio id="audio" autoplay>
-                <source id="audio_source" src="static/music/answer.wav" type="audio/wav">
-            </audio>
+        <script>window.scrollTo(0, document.body.scrollHeight);</script>
+        {% if text_to_play_audio %}
+            <script> // Play the message
+
+                let utter = new SpeechSynthesisUtterance();
+                console.log("{{ text_to_play_audio }}")
+
+                window.speechSynthesis.onvoiceschanged = () => {
+                    // On Voices Loaded
+                    let voices = window.speechSynthesis.getVoices();
+                    utter.voice = voices[2];  // Setup the voice (Microsoft Zira voice)
+
+                    utter.text = "{{ text_to_play_audio }}";  // Setup the text
+
+                    window.speechSynthesis.speak(utter);  // Speak
+                };
+            </script>
         {% endif %}
 
 
         {% if link_to_search %}
             <script>
                 window.open("{{ link_to_search }}", '_blank').focus();
-            </script>
-        {% endif %}
-
-        {% if close_tab %}
-            <script>
-                history.go(-history.length + 1);
             </script>
         {% endif %}
     </div>

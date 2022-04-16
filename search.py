@@ -24,15 +24,8 @@ YANDEX_LANGCODES = {"russian": "ru", "english": "en", "belorussian": "be", "fren
 
 
 def search(query: str, language: str):
-    if language not in YANDEX_LANGCODES.keys():
-        params = {
-            "engine": "yandex",
-            'yandex_domain': 'yandex.ru',
-            "text": query,
-            "api_key": SEARCH_API_KEY,
-            "lang": "en"
-        }
-    else:
+    # Make a request
+    if language in YANDEX_LANGCODES.keys():  # If searching in the user's language is available
         params = {
             "engine": "yandex",
             'yandex_domain': 'yandex.ru',
@@ -40,19 +33,26 @@ def search(query: str, language: str):
             "api_key": SEARCH_API_KEY,
             "lang": YANDEX_LANGCODES[language]
         }
+    else:
+        params = {
+            "engine": "yandex",
+            'yandex_domain': 'yandex.ru',
+            "text": query,
+            "api_key": SEARCH_API_KEY,
+            "lang": "en"
+        }
 
     search_ = GoogleSearch(params)
     results = search_.get_dict()
     organic_results = results['organic_results']  # Results of the search
 
+    # Iterate through the results
     for result in organic_results:
         link = result['link']
         if re.findall(r'music\.yandex', link):  # If there is a Yandex.Music link in the results
             assistant.link_to_search = link
             return query
 
-    for result in organic_results:
-        link = result['link']
         if re.findall(r'wikipedia', link):  # If there is a Wikipedia link in the results
             assistant.link_to_search = link
             topic = link.split('/')[-1]

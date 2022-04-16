@@ -18,14 +18,16 @@ class User(SqlAlchemyBase, UserMixin):
     language = sqlalchemy.Column(sqlalchemy.String)
     path_to_image = sqlalchemy.Column(sqlalchemy.String)
 
-    def __init__(self, username, email):
+    def __init__(self, username: str, email: str):
         super(User, self).__init__()
         self.username = username
         self.email = email
 
-    def set_password(self, password):
-        self.previous_hashed_password = self.hashed_password
+    def set_password(self, password: str):
+        # Hash the password and save it to the user table for the user
+        self.previous_hashed_password = self.hashed_password  # Make current password previous
         self.hashed_password = generate_password_hash(password)
 
-    def check_password(self, password):
+    def check_password(self, password: str):
+        # Check whether the password for the user is correct
         return check_password_hash(self.hashed_password, password)

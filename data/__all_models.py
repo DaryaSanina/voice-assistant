@@ -1,1 +1,1 @@
-from . import users, sent_messages
+from . import users, sent_messages, event_models

@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField, FileField, SelectField
+from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField, FileField,\
+    SelectField
 from wtforms.validators import DataRequired
 
 import re
@@ -52,6 +53,7 @@ def check_password_length(form):
 
 
 def check_password_letters_and_digits(form):
+    # Check if the password contains only latin letters, digits and other ASCII symbols
     return re.fullmatch(r'[!-~]+', form.password.data) and re.findall(r'[A-Z]', form.password.data) \
            and re.findall(r'[a-z]', form.password.data) and re.findall(r'[0-9]', form.password.data) \
            and re.findall(r'[!-/:-@\[-`{-~]', form.password.data)
@@ -63,4 +65,5 @@ def check_password_case(form):
 
 
 def match_passwords(form):
+    # Match "Password" and "Repeat password" fields data
     return form.password.data == form.password_again.data
