@@ -11,3 +11,4 @@ Pillow~=9.1.0
 nltk~=3.7
 python-dotenv~=0.20.0
 spacy~=3.2.4
+Wikipedia-API~=0.5.4
