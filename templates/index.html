@@ -56,11 +56,5 @@
                 window.open("{{ link_to_search }}", '_blank').focus();
             </script>
         {% endif %}
-
-        {% if close_tab %}
-            <script>
-                history.go(-history.length + 1);
-            </script>
-        {% endif %}
     </div>
 {% endblock %}

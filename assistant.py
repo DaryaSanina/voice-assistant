@@ -8,7 +8,7 @@ import re
 import random
 from googletrans import Translator
 
-close_tab = False
+log_out = False
 link_to_search = ""
 search_in_the_internet = True
 
@@ -37,9 +37,9 @@ def answer(user_message_text: str, user_language="english") -> str:
 
 def recognize_user_intention(original_user_message_text: str,
                              translated_user_message_text: str, user_language:str) -> str:
-    global close_tab, search_in_the_internet, link_to_search
+    global log_out, search_in_the_internet, link_to_search
 
-    close_tab = False
+    log_out = False
     search_in_the_internet = False
     link_to_search = ""
 
@@ -105,7 +105,7 @@ def recognize_user_intention(original_user_message_text: str,
 
     # Farewell
     if re.findall(r"bye", translated_user_message_text):
-        close_tab = True
+        log_out = True
         return "Bye!"
 
     # Searching in the internet

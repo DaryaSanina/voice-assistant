@@ -41,10 +41,12 @@ def load_events(current_user):
         for event in database_events:
             events.append(Event(name=event.name, date=event.date, time=event.time,
                                 place=event.place))
+        return events
+    return list()
 
 
 def update_database(current_user):
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and events:
         db_sess = db_session.create_session()
 
         # If there is no event with the same name and user id

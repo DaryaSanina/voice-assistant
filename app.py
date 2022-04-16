@@ -61,7 +61,7 @@ def index():
             sent_messages.append(Message(text=message.text, sender=message.sender))
 
     # Load the user's events from the database
-    events.load_events(current_user)
+    events.events = events.load_events(current_user)
 
     # Delete past events
     i = 0
@@ -128,8 +128,6 @@ def index():
     if request.method == 'POST':
         if text_to_play_audio:
             text_to_play_audio = ""
-        if assistant.close_tab:
-            assistant.close_tab = False
 
         if text_message_input_form.validate_on_submit():  # If the user has sent a text message
             # The user's message
@@ -180,12 +178,18 @@ def index():
             db_sess.commit()
 
         events.update_database(current_user)
+
+        if assistant.log_out:
+            assistant.log_out = False
+            if current_user.is_authenticated:
+                return redirect('/logout')
+
         return redirect('/')
 
     # Render HTML
     return render_template('index.html', title="Voice assistant", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
-                           text_to_play_audio=text_to_play_audio, close_tab=assistant.close_tab,
+                           text_to_play_audio=text_to_play_audio,
                            link_to_search=assistant.link_to_search, current_user=current_user)
 
 
