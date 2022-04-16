@@ -11,6 +11,7 @@ if os.path.exists(path):
 
 
 def get_rate(base_currency, target_currency):
+    # Make a request
     url = f'https://v6.exchangerate-api.com/v6/{CURRENCY_RATE_APP_ID}/pair/{base_currency}/{target_currency}'
     response = requests.get(url=url)
     json_response = response.json()
