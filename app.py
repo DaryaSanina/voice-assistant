@@ -187,7 +187,7 @@ def index():
         return redirect('/')
 
     # Render HTML
-    return render_template('index.html', title="Voice assistant", messages=sent_messages,
+    return render_template('index.html', title="Yana", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
                            text_to_play_audio=text_to_play_audio,
                            link_to_search=assistant.link_to_search, current_user=current_user)
