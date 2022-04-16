@@ -28,6 +28,7 @@ UNICODE_SYMBOL_CODES = list(range(33, 48)) + list(range(58, 65)) + list(range(91
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = str(hash('secret_key'))
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
