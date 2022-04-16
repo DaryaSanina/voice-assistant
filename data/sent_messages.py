@@ -12,7 +12,7 @@ class SentMessage(SqlAlchemyBase):
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
 
-    def __init__(self, user_id, text, sender):
+    def __init__(self, user_id: int, text: str, sender: str):
         super(SentMessage, self).__init__()
         self.user_id = user_id
         self.text = text

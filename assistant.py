@@ -50,22 +50,22 @@ def recognize_user_intention(original_user_message_text: str,
 
     # Weather forecast
 
-    # Determine the location
+    # Determine the location manually if unable to get it using the user's ip
     if weather.wait_for_geolocation:
         try:
             weather.wait_for_geolocation = False
             return weather.get_weather(translated_user_message_text)
-        except KeyError:
+        except KeyError:  # The location wasn't recognized, try again
             weather.wait_for_geolocation = True
             return "Please enter your location again"
 
     if re.findall(r"weather", translated_user_message_text):
-        return weather.get_weather(translated_user_message_text)
+        return weather.get_weather(translated_user_message_text)  # Get the weather forecast
 
     # Currency rate
     if len(re.findall(r"[A-Z]{3}", translated_user_message_text)) == 2:
-        currencies = re.findall(r"[A-Z]{3}", translated_user_message_text)
-        return currency_rate.get_rate(*currencies)
+        currencies = re.findall(r"[A-Z]{3}", translated_user_message_text)  # Find currency names
+        return currency_rate.get_rate(*currencies)  # Get the currency rate
 
     # Get list of events
     if re.findall(r"plans|events", translated_user_message_text):
@@ -88,11 +88,13 @@ def recognize_user_intention(original_user_message_text: str,
                f"Place: {events.events[-1].place}"
 
     # Toss a coin
-    if re.findall("toss", translated_user_message_text) and re.findall("coin", translated_user_message_text):
+    if re.findall("toss", translated_user_message_text) \
+            and re.findall("coin", translated_user_message_text):
         return random.choice(["Heads", "Tails"])
 
     # Roll a dice
-    if re.findall("roll", translated_user_message_text) and re.findall("dice", translated_user_message_text):
+    if re.findall("roll", translated_user_message_text) \
+            and re.findall("dice", translated_user_message_text):
         return str(random.randint(1, 6))
 
     # Greeting
