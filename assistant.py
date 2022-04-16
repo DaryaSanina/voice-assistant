@@ -21,11 +21,8 @@ def answer(user_message_text: str, user_language="english") -> str:
         translated_user_message_text = translator.translate(text=user_message_text,
                                                             src=user_language).text
 
-    try:
-        answer_text = recognize_user_intention(user_message_text, translated_user_message_text,
-                                               user_language)
-    except:
-        answer_text = "Sorry, I couldn't recognize your query"
+    answer_text = recognize_user_intention(user_message_text, translated_user_message_text,
+                                           user_language)
 
     if user_language != "english":  # Translate the assistant's answer into the user's language
         answer_text = translator.translate(text=answer_text, dest=user_language).text
