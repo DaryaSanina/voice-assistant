@@ -31,6 +31,28 @@
         <button class="btn btn-primary" id="record-btn"></button>
         <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
         <script src="/static/js/record_audio.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+        <script>
+            navigator.geolocation.getCurrentPosition(showPosition);
+            function showPosition(position) {
+                console.log(position.coords.latitude, position.coords.longitude);
+                const coords_dict = {"lat": position.coords.latitude,
+                    "lon": position.coords.longitude};
+                const string = JSON.stringify(coords_dict);
+                $.ajax({
+                    url: "/geolocation",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(string)
+                });
+
+                let request = new XMLHttpRequest();
+                let form_data = new FormData();
+                form_data.append("coords", coords);
+                request.open("POST", "/", true);
+                request.send(form_data);
+            }
+        </script>
         <script>window.scrollTo(0, document.body.scrollHeight);</script>
         {% if text_to_play_audio %}
             <script> // Play the message
