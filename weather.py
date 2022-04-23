@@ -40,6 +40,7 @@ def get_geopolitical_entity_coords(geopolitical_entity):
 
     toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
     coords = toponym["Point"]["pos"].split()
+    coords = {'lon': coords[0], 'lat': coords[1]}
     return coords
 
 
