@@ -27,8 +27,7 @@ def answer(user_message_text: str, user_language="english") -> str:
     except:
         answer_text = "Sorry, I couldn't recognize your query"
 
-    if user_language != "english":  # Translate the assistant's answer into the user's language
-        answer_text = translator.translate(text=answer_text, dest=user_language).text
+    answer_text = translator.translate(text=answer_text, dest=user_language).text
 
     if link_to_search:
         return answer_text + ' ' + link_to_search
