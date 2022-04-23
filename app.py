@@ -1,6 +1,7 @@
 import re
 import datetime
 import random
+import json
 
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
@@ -12,6 +13,7 @@ from forms import TextMessageInputForm, RegisterForm, LoginForm, ForgotPasswordF
     check_password_case, check_password_letters_and_digits
 import assistant
 import speech
+import weather
 import send_email
 import image
 from global_variables import SERVER_ADDRESS_HOST, SERVER_ADDRESS_PORT
@@ -188,7 +190,9 @@ def index():
         return redirect('/')
 
     # Render HTML
-    return render_template('index.html', title="Yana", messages=sent_messages,
+    messages_ = sent_messages
+    sent_messages = list()
+    return render_template('index.html', title="Yana", messages=messages_,
                            text_message_input_form=text_message_input_form,
                            text_to_play_audio=text_to_play_audio,
                            link_to_search=assistant.link_to_search, current_user=current_user)
@@ -425,6 +429,14 @@ def settings():
         return redirect('/')
     return render_template('settings.html', title='Registration', form=settings_form,
                            current_user=current_user)
+
+
+@app.route('/geolocation', methods=['POST'])
+def get_user_geolocation():
+    output = request.get_json()
+    result = json.loads(output)
+    weather.coords = result
+    return ""
 
 
 def generate_password() -> str:

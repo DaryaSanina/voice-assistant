@@ -3,7 +3,6 @@ import datetime
 import re
 import os
 from dotenv import load_dotenv
-from flask import request
 
 from global_variables import nlp
 
@@ -17,17 +16,7 @@ WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", 
 MONTHS = ["january", "february", "march", "april", "may", "june",
           "july", "august", "september", "october", "november", "december"]
 wait_for_geolocation = False
-
-
-def get_user_geolocation() -> tuple:
-    # Make a request
-    url = f'http://ip-api.com/json/{request.remote_addr}'
-    response = requests.get(url=url)
-    json_response = response.json()
-
-    coords = [json_response["lat"], json_response["lon"]]
-    city = json_response["city"]
-    return coords, city
+coords = {"lat": 0, "lon": 0}
 
 
 def get_geopolitical_entity_from_text(text) -> str:
@@ -108,7 +97,7 @@ def get_delta_days_from_text(text) -> (int, str):
 
 
 def get_weather(user_message_text) -> str:
-    global wait_for_geolocation
+    global wait_for_geolocation, coords
 
     # Determine the location
     try:
@@ -116,7 +105,18 @@ def get_weather(user_message_text) -> str:
 
         # If the user hasn't entered their location in the message
         if geopolitical_entity is None:
-            coords, geopolitical_entity = get_user_geolocation()
+            # Get geopolitical entity from coordinates
+            # Make a request
+            url = 'http://geocode-maps.yandex.ru/1.x/'
+            params = {'apikey': '40d1649f-0493-4b70-98ba-98533de7710b',
+                      'geocode': f"{coords['lon']}, {coords['lat']}",
+                      'format': 'json'}
+            response = requests.get(url, params)
+            json_response = response.json()
+
+            toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0][
+                "GeoObject"]
+            geopolitical_entity = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
         else:
             coords = get_geopolitical_entity_coords(geopolitical_entity)
 
@@ -130,7 +130,8 @@ def get_weather(user_message_text) -> str:
     if delta_days == 0:  # Get current weather
         # Make a request
         url = 'http://api.openweathermap.org/data/2.5/find'
-        params = {'q': geopolitical_entity, 'units': 'metric', 'lang': 'en', 'APPID': WEATHER_APP_ID}
+        params = {'lat': coords['lat'], 'lon': coords['lon'], 'units': 'metric', 'lang': 'en',
+                  'APPID': WEATHER_APP_ID}
         response = requests.get(url=url, params=params)
         json_response = response.json()["list"][-1]
 
@@ -142,7 +143,7 @@ def get_weather(user_message_text) -> str:
     elif delta_days < 7:  # Get weather forecast
         # Make a request
         url = 'http://api.openweathermap.org/data/2.5/onecall'
-        params = {'lat': coords[0], 'lon': coords[1], 'units': 'metric',
+        params = {'lat': coords['lat'], 'lon': coords['lon'], 'units': 'metric',
                   'lang': 'en', 'APPID': WEATHER_APP_ID}
         response = requests.get(url=url, params=params)
         json_response = response.json()["daily"][delta_days]
