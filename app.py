@@ -3,7 +3,7 @@ import datetime
 import random
 import json
 
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, session
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
 import events
@@ -62,6 +62,9 @@ def index():
         sent_messages = list()
         for message in database_messages:
             sent_messages.append(Message(text=message.text, sender=message.sender))
+    else:
+        sent_messages = [Message(text=message[0], sender=message[1])
+                         for message in session.get("sent_messages", list())]
 
     # Load the user's events from the database
     events.events = events.load_events(current_user)
@@ -187,15 +190,16 @@ def index():
             if current_user.is_authenticated:
                 return redirect('/logout')
 
+        session['sent_messages'] = [[message.text, message.sender] for message in sent_messages]
         return redirect('/')
 
+    link_to_search = assistant.link_to_search
+    assistant.link_to_search = ""
     # Render HTML
-    messages_ = sent_messages
-    sent_messages = list()
-    return render_template('index.html', title="Yana", messages=messages_,
+    return render_template('index.html', title="Yana", messages=sent_messages,
                            text_message_input_form=text_message_input_form,
                            text_to_play_audio=text_to_play_audio,
-                           link_to_search=assistant.link_to_search, current_user=current_user)
+                           link_to_search=link_to_search, current_user=current_user)
 
 
 @app.route('/register', methods=['POST', 'GET'])
